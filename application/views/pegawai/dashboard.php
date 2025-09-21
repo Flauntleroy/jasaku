@@ -3,7 +3,7 @@
 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
   <div>
     <h2 class="text-title-md2 font-semibold text-black dark:text-white">Dashboard Pegawai</h2>
-  <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Ringkasan perolehan jasa dan riwayat terbaru.</p>
+  <!-- <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Ringkasan perolehan jasa dan riwayat terbaru.</p> -->
   </div>
   <nav aria-label="Breadcrumb">
     <ol class="flex items-center gap-2">
@@ -51,19 +51,19 @@
     <!-- KPI Kartu -->
     <div class="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Total Jasa (YTD)</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Total Jasa <?= date('Y') ?></p>
         <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">Rp <?= number_format($ytd_netto ?? 0, 0, ',', '.') ?></h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Total Potongan Pajak (YTD)</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Total Potongan Pajak  <?= date('Y') ?></p>
         <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">Rp <?= number_format($ytd_pajak ?? 0, 0, ',', '.') ?></h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Rata-rata Jasa Diterima (YTD)</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Rata-rata Jasa Diterima  <?= date('Y') ?></p>
         <h4 class="mt-2 text-title-sm font-bold text-emerald-600 dark:text-emerald-400">Rp <?= number_format($ytd_avg ?? 0, 0, ',', '.') ?></h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Persentase TTD (YTD)</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Persentase TTD  <?= date('Y') ?></p>
         <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90"><?= number_format($ytd_signed_percent ?? 0, 0) ?>%</h4>
       </div>
     </div>
@@ -92,7 +92,7 @@
     <div class="col-span-12 lg:col-span-6">
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Perolehan Jasa Tahun Ini</h3>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90"><?= html_escape($line_title ?? 'Perolehan Jasa') ?></h3>
         </div>
         <div id="pegawaiLineChart" class="h-64 w-full"></div>
       </div>
@@ -149,24 +149,45 @@
 
 <script>
   (function(){
-    if (!window.ApexCharts) return;
     const el = document.querySelector('#pegawaiLineChart');
     if (!el) return;
-    const categories = <?= json_encode($line_categories ?? []) ?>;
-    const dataNetto = <?= json_encode($line_netto ?? []) ?>;
-    const options = {
-      chart: { type: 'line', height: 280, toolbar: { show: false }, animations: { enabled: true } },
-      stroke: { width: 3, curve: 'smooth' },
-      colors: ['#10b981'],
-      dataLabels: { enabled: false },
-      xaxis: { categories: categories },
-      yaxis: { labels: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
-      tooltip: { y: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
-      series: [{ name: 'Netto', data: dataNetto }],
-      grid: { borderColor: 'rgba(107,114,128,0.2)' }
-    };
-    const chart = new ApexCharts(el, options);
-    chart.render();
+
+    function renderPegawaiChart() {
+      const categories = <?= json_encode($line_categories ?? []) ?>;
+      const dataNettoRaw = <?= json_encode($line_netto ?? []) ?>;
+
+      const cats = Array.isArray(categories) ? categories : [];
+      let dataNetto = Array.isArray(dataNettoRaw) ? dataNettoRaw.map(v => Number(v) || 0) : [];
+      if (dataNetto.length < cats.length) {
+        dataNetto = dataNetto.concat(new Array(cats.length - dataNetto.length).fill(0));
+      } else if (dataNetto.length > cats.length) {
+        dataNetto = dataNetto.slice(0, cats.length);
+      }
+
+      const options = {
+        chart: { type: 'bar', height: 280, toolbar: { show: false }, animations: { enabled: true } },
+        plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4 } },
+        colors: ['#10b981'],
+        dataLabels: { enabled: false },
+        xaxis: { categories: cats },
+        yaxis: { labels: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
+        tooltip: { y: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
+        series: [{ name: 'Netto', data: dataNetto }],
+        grid: { borderColor: 'rgba(107,114,128,0.2)' },
+        noData: { text: 'Tidak ada data', align: 'center', style: { color: '#6b7280' } }
+      };
+      const chart = new ApexCharts(el, options);
+      chart.render();
+    }
+
+    if (typeof ApexCharts !== 'undefined') {
+      renderPegawaiChart();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.54.1';
+      s.onload = renderPegawaiChart;
+      document.head.appendChild(s);
+    }
   })();
 </script>
 

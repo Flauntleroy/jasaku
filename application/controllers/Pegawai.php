@@ -63,11 +63,22 @@ class Pegawai extends CI_Controller {
     $all = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, date('Y'), 'unsigned');
     $data['unsigned_list'] = $all;
 
-    // Line chart data for the whole current year (netto per month)
+    // Chart data for the whole current year (netto per month)
     $year = (int)date('Y');
     $line = $this->Jasa_bonus_model->get_user_monthly_netto_for_year($user_id, $year);
-    $data['line_categories'] = $line['categories'] ?? [];
-    $data['line_netto'] = $line['netto'] ?? [];
+    $cats = isset($line['categories']) && is_array($line['categories']) ? $line['categories'] : [];
+    $net = isset($line['netto']) && is_array($line['netto']) ? $line['netto'] : [];
+    $lineTitle = 'Perolehan Jasa Tahun Ini';
+    // Fallback: if empty (no data in current calendar year), use last 12 months rolling window
+    if (empty($cats) || empty($net)) {
+        $ms = $this->Jasa_bonus_model->get_monthly_sums_for_user($user_id, 12);
+        $cats = $ms['categories'] ?? [];
+        $net = $ms['netto'] ?? [];
+        $lineTitle = 'Perolehan Jasa 12 Bulan Terakhir';
+    }
+    $data['line_categories'] = $cats;
+    $data['line_netto'] = $net;
+    $data['line_title'] = $lineTitle;
 
         $data['content'] = $this->load->view('pegawai/dashboard', $data, TRUE);
         $this->load->view('template/main', $data);

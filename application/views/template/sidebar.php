@@ -5,8 +5,9 @@
 >
   <!-- Sidebar Header -->
   <div :class="sidebarToggle ? 'justify-center' : 'justify-between'" class="flex items-center gap-2 pt-8 sidebar-header pb-7">
-    <a href="<?= base_url('admin/dashboard') ?>" class="flex items-center gap-3">
-      <img src="<?= base_url('assets/images/logo/jasaku.png') ?>" alt="Jasa-Ku" class="h-9 w-9 rounded-lg object-contain" onerror="this.style.display='none'" />
+    <?php $roleHeader = $this->session->userdata('role'); $homeUrl = $roleHeader === 'admin' ? 'admin/dashboard' : 'pegawai/dashboard'; ?>
+    <a href="<?= base_url($homeUrl) ?>" class="flex items-center gap-3">
+      <img src="<?= base_url('assets/images/logo/jasaku.png') ?>" alt="Jasa-Ku" class="rounded-lg" style="width: 40px; height: 40px; object-fit: contain;" onerror="this.onerror=null;this.src='<?= base_url('assets/images/logo/logo-icon.svg') ?>'" />
       <span class="text-lg font-semibold text-gray-900 dark:text-white" :class="sidebarToggle ? 'lg:hidden' : ''">Jasa-Ku</span>
     </a>
   </div>
@@ -53,15 +54,15 @@
               </a>
             </li>
             <li>
-              <a href="<?= base_url('pegawai/history') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 <?= uri_string()==='pegawai/history'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
-                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>
-                <span :class="sidebarToggle ? 'lg:hidden' : ''">Riwayat TTD</span>
-              </a>
-            </li>
-            <li>
               <a href="<?= base_url('pegawai/tanda-tangan') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 <?= uri_string()==='pegawai/tanda-tangan'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
                 <svg class="h-5 w-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17h18v2H3v-2zm4-3h10v2H7v-2zm-4-4h18v2H3V10zm0-5h12v2H3V5z"/></svg>
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Tanda Tangan</span>
+              </a>
+            </li>
+            <li>
+              <a href="<?= base_url('pegawai/history') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 <?= uri_string()==='pegawai/history'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>
+                <span :class="sidebarToggle ? 'lg:hidden' : ''">History</span>
               </a>
             </li>
             <li>
