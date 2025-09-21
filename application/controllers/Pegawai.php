@@ -99,7 +99,8 @@ class Pegawai extends CI_Controller {
 
         // Pastikan jasa ini milik user
         $jasa = $this->Jasa_bonus_model->get_jasa_bonus_by_id($jasa_bonus_id);
-        if (!$jasa || (int)$jasa->user_id !== (int)$user_id) {
+        $me = $this->User_model->get_user_by_id($user_id);
+        if (!$jasa || !$me || $jasa->nik !== $me->nik) {
             show_404();
         }
 
@@ -187,7 +188,7 @@ class Pegawai extends CI_Controller {
         // Simpan ke database
         $data_insert = array(
             'jasa_bonus_id' => $jasa_bonus_id,
-            'user_id' => $user_id,
+            'nik' => $me->nik,
             'signed_at' => date('Y-m-d H:i:s'),
             'tanda_tangan_image' => $image_path_rel,
         );

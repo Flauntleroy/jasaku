@@ -99,6 +99,17 @@ class Admin extends CI_Controller {
             $this->export_laporan();
             return;
         }
+        // Handle print view
+        if ($this->input->get('print')) {
+            $start_date = $this->input->get('start_date');
+            $end_date = $this->input->get('end_date');
+            $data['laporan'] = $this->Tanda_tangan_model->get_for_export($start_date, $end_date);
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            // Render bare view (no template wrapper) for printing
+            $this->load->view('admin/laporan_print', $data);
+            return;
+        }
         
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
@@ -314,7 +325,7 @@ class Admin extends CI_Controller {
     }
 
     private function create_jasa_bonus() {
-        $this->form_validation->set_rules('user_id', 'Pegawai', 'required');
+    $this->form_validation->set_rules('user_id', 'Pegawai', 'required');
         // Support either periode (date) or periode_month (YYYY-MM)
         if ($this->input->post('periode_month')) {
             $this->form_validation->set_rules('periode_month', 'Periode', 'required');
@@ -328,6 +339,8 @@ class Admin extends CI_Controller {
             $this->session->set_flashdata('error', validation_errors());
         } else {
             $user_id = $this->input->post('user_id');
+            $user = $this->User_model->get_user_by_id($user_id);
+            if (!$user || empty($user->nik)) { $this->session->set_flashdata('error', 'Pegawai/NIK tidak ditemukan.'); redirect('admin/jasa-bonus'); return; }
             $periode = $this->input->post('periode');
             $periode_month = $this->input->post('periode_month');
             if (!empty($periode_month) && preg_match('/^\d{4}-\d{2}$/', $periode_month)) {
@@ -340,7 +353,7 @@ class Admin extends CI_Controller {
                 $this->session->set_flashdata('error', 'Data jasa/bonus untuk periode ini sudah ada untuk pegawai tersebut.');
             } else {
                 $data = array(
-                    'user_id' => $user_id,
+                    'nik' => $user->nik,
                     'periode' => $periode,
                     'terima_sebelum_pajak' => $this->input->post('terima_sebelum_pajak'),
                     'pajak_5' => $this->input->post('pajak_5') ?: 0,
@@ -356,7 +369,7 @@ class Admin extends CI_Controller {
                         // find the just-created record id
                         $this->db->select('id');
                         $this->db->from('jasa_bonus');
-                        $this->db->where('user_id', $user_id);
+                        $this->db->where('nik', $user->nik);
                         $this->db->where('periode', $periode);
                         $this->db->order_by('id', 'DESC');
                         $jb = $this->db->get()->row();
@@ -428,8 +441,8 @@ class Admin extends CI_Controller {
             redirect('admin/jasa-bonus'); return;
         }
 
-        // Ambil user untuk nomor HP
-        $user = $this->User_model->get_user_by_id($jb->user_id);
+    // Ambil user untuk nomor HP
+    $user = $this->User_model->get_user_by_nik($jb->nik);
         if (!$user) { $this->session->set_flashdata('error', 'Pegawai tidak ditemukan.'); redirect('admin/jasa-bonus'); return; }
         if (empty($user->phone)) { $this->session->set_flashdata('error', 'Nomor HP pegawai kosong. Lengkapi dulu di menu Pegawai.'); redirect('admin/jasa-bonus'); return; }
 
@@ -453,7 +466,7 @@ class Admin extends CI_Controller {
 
     /** Tambah jasa/bonus untuk banyak pegawai sekaligus */
     private function create_jasa_bonus_bulk() {
-        $user_ids = $this->input->post('user_ids'); // array
+    $user_ids = $this->input->post('user_ids'); // array
         $periode = $this->input->post('periode');
         $terima_sebelum_pajak = $this->input->post('terima_sebelum_pajak');
         $pajak_5 = $this->input->post('pajak_5') ?: 0;
@@ -472,9 +485,11 @@ class Admin extends CI_Controller {
 
         $created = 0; $skipped = 0;
         foreach ($user_ids as $uid) {
-            if ($this->Jasa_bonus_model->period_exists_for_user($uid, $periode)) { $skipped++; continue; }
+            $u = $this->User_model->get_user_by_id($uid);
+            if (!$u || empty($u->nik)) { $skipped++; continue; }
+            if ($this->Jasa_bonus_model->period_exists_for_nik($u->nik, $periode)) { $skipped++; continue; }
             $data = array(
-                'user_id' => $uid,
+                'nik' => $u->nik,
                 'periode' => $periode,
                 'terima_sebelum_pajak' => $terima_sebelum_pajak,
                 'pajak_5' => $pajak_5,
@@ -496,9 +511,9 @@ class Admin extends CI_Controller {
         
         $laporan = $this->Tanda_tangan_model->get_for_export($start_date, $end_date);
         
-        // Load PHPSpreadsheet or create CSV export
-        $this->load->library('csv_export');
-        $this->csv_export->export_laporan($laporan, $start_date, $end_date);
+        // Export to XLSX including signature image
+        $this->load->library('excel_export');
+        $this->excel_export->export_laporan($laporan, $start_date, $end_date);
     }
 
     /** Export semua data jasa/bonus ke Excel sesuai format yang diminta
@@ -612,13 +627,13 @@ class Admin extends CI_Controller {
                 );
 
                 // Ada data periode ini?
-                if ($this->Jasa_bonus_model->period_exists_for_user($user->id, $periode)) {
+                if ($this->Jasa_bonus_model->period_exists_for_nik($user->nik, $periode)) {
                     // Update
-                    $this->db->where('user_id', $user->id);
+                    $this->db->where('nik', $user->nik);
                     $this->db->where('periode', $periode);
                     if ($this->db->update('jasa_bonus', $data)) { $updated++; } else { $errors++; }
                 } else {
-                    $data['user_id'] = $user->id; $data['periode'] = $periode;
+                    $data['nik'] = $user->nik; $data['periode'] = $periode;
                     if ($this->db->insert('jasa_bonus', $data)) { $created++; } else { $errors++; }
                 }
             }
