@@ -43,6 +43,9 @@ class Admin extends CI_Controller {
         
         // Get statistics
         $data['stats'] = $this->Jasa_bonus_model->get_statistics();
+        // Get charts data
+        $data['monthly'] = $this->Jasa_bonus_model->get_monthly_sums(12);
+        $data['signed_percent'] = $this->Jasa_bonus_model->get_signed_percentage();
         
         // Get recent jasa bonus
         $data['recent_jasa'] = array_slice($this->Jasa_bonus_model->get_jasa_bonus_with_signature(), 0, 5);

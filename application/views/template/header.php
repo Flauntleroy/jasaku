@@ -5,8 +5,9 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title><?= isset($title) ? $title . ' | ' : '' ?>TailAdmin</title>
-        <link rel="icon" href="<?= base_url('tailadmin-free-tailwind-dashboard-template-main/build/favicon.ico') ?>" />
+    <title><?= isset($title) ? $title . ' | ' : '' ?>Jasa-Ku</title>
+    <link rel="icon" type="image/png" href="<?= base_url('assets/images/logo/jasaku.png') ?>" />
+    <link rel="alternate icon" href="<?= base_url('tailadmin-free-tailwind-dashboard-template-main/build/favicon.ico') ?>" />
         <!-- TailAdmin Styles -->
         <link rel="stylesheet" href="<?= base_url('tailadmin-free-tailwind-dashboard-template-main/build/style.css') ?>" />
     <style>[x-cloak]{display:none !important;}</style>

@@ -83,44 +83,44 @@
             </div>
     </div>
 
-    <!-- Chart One -->
+    <!-- Chart: Bruto vs Netto per Bulan -->
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Monthly Sales</h3>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Bruto vs Netto per Bulan</h3>
       </div>
       <div class="custom-scrollbar max-w-full overflow-x-auto">
         <div class="-ml-5 min-w-[650px] pl-2 xl:min-w-full">
-          <div id="chartOne" class="-ml-5 h-full min-w-[650px] pl-2 xl:min-w-full"></div>
+          <div id="chartMonthly" class="-ml-5 h-full min-w-[650px] pl-2 xl:min-w-full"></div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="col-span-12 xl:col-span-5">
-    <!-- Chart Two -->
+    <!-- Chart: Persentase TTD -->
     <div class="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="shadow-default rounded-2xl bg-white px-5 pb-11 pt-5 dark:bg-gray-900 sm:px-6 sm:pt-6">
         <div class="flex justify-between">
           <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Revenue Overview</h3>
-            <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">This month vs last month</p>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Persentase TTD</h3>
+            <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Dokumen bertanda tangan / total</p>
           </div>
         </div>
-        <div class="relative max-h-[195px]"><div id="chartTwo" class="h-full"></div></div>
+        <div class="relative max-h-[195px]"><div id="chartSigned" class="h-full"></div></div>
       </div>
     </div>
   </div>
 
   <div class="col-span-12">
-    <!-- Chart Three -->
+    <!-- Chart: Trend Netto -->
     <div class="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div class="mb-6 flex flex-col gap-5 sm:flex-row sm:justify-between">
         <div class="w-full">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Statistics</h3>
-          <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Target you've set for each month</p>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Trend Netto</h3>
+          <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Perkembangan terima setelah pajak</p>
         </div>
       </div>
-      <div class="custom-scrollbar max-w-full overflow-x-auto"><div id="chartThree" class="-ml-4 min-w-[700px] pl-2"></div></div>
+      <div class="custom-scrollbar max-w-full overflow-x-auto"><div id="chartNetto" class="-ml-4 min-w-[700px] pl-2"></div></div>
     </div>
   </div>
 
@@ -243,3 +243,85 @@
   </div>
 </div>
 <?php endif; ?>
+
+<!-- Inline chart init for this page only -->
+<script>
+  (function initDashboardCharts() {
+    const init = function() {
+      // PHP-provided data
+      const categories = <?= json_encode($monthly['categories'] ?? []) ?>;
+      const bruto = <?= json_encode($monthly['bruto'] ?? []) ?>;
+      const netto = <?= json_encode($monthly['netto'] ?? []) ?>;
+      const signedPercent = <?= json_encode($signed_percent ?? 0) ?>;
+
+      // Chart: Bruto vs Netto (columns)
+      const elMonthly = document.querySelector('#chartMonthly');
+      if (elMonthly) {
+        const options = {
+          series: [
+            { name: 'Bruto', data: bruto },
+            { name: 'Netto', data: netto },
+          ],
+          colors: ['#9CB9FF', '#465FFF'],
+          chart: { type: 'bar', height: 300, toolbar: { show: false }, stacked: false, fontFamily: 'Outfit, sans-serif' },
+          plotOptions: { bar: { columnWidth: '40%', borderRadius: 5, borderRadiusApplication: 'end' } },
+          dataLabels: { enabled: false },
+          stroke: { show: true, width: 4, colors: ['transparent'] },
+          xaxis: { categories, axisBorder: { show: false }, axisTicks: { show: false } },
+          yaxis: { labels: { formatter: val => new Intl.NumberFormat('id-ID').format(val) } },
+          tooltip: { y: { formatter: val => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
+          legend: { position: 'top', horizontalAlign: 'left' },
+          grid: { yaxis: { lines: { show: true } } },
+        };
+        const chart = new ApexCharts(elMonthly, options); chart.render();
+      }
+
+      // Chart: Persentase TTD (semi-donut)
+      const elSigned = document.querySelector('#chartSigned');
+      if (elSigned) {
+        const options = {
+          series: [Number(signedPercent)],
+          colors: ['#465FFF'],
+          chart: { type: 'radialBar', height: 260, sparkline: { enabled: true }, fontFamily: 'Outfit, sans-serif' },
+          plotOptions: { radialBar: { startAngle: -90, endAngle: 90, hollow: { size: '70%' }, track: { background: '#E4E7EC', strokeWidth: '100%', margin: 5 }, dataLabels: { name: { show: false }, value: { fontSize: '28px', fontWeight: 600, offsetY: 8, formatter: val => val + '%' } } } },
+          labels: ['Signed %'],
+        };
+        const chart = new ApexCharts(elSigned, options); chart.render();
+      }
+
+      // Chart: Netto Trend (area)
+      const elNetto = document.querySelector('#chartNetto');
+      if (elNetto) {
+        const options = {
+          series: [{ name: 'Netto', data: netto }],
+          colors: ['#465FFF'],
+          chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Outfit, sans-serif' },
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth', width: 3 },
+          fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 100] } },
+          xaxis: { categories, axisBorder: { show: false }, axisTicks: { show: false } },
+          yaxis: { labels: { formatter: val => new Intl.NumberFormat('id-ID').format(val) } },
+          tooltip: { y: { formatter: val => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
+          grid: { yaxis: { lines: { show: true } } },
+        };
+        const chart = new ApexCharts(elNetto, options); chart.render();
+      }
+    };
+
+    function ensureApexAndInit() {
+      if (typeof ApexCharts !== 'undefined') {
+        init();
+      } else {
+        // Load from CDN if not present in bundle
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.54.1';
+        s.onload = init;
+        document.head.appendChild(s);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureApexAndInit);
+    } else { ensureApexAndInit(); }
+  })();
+</script>

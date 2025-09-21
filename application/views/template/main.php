@@ -12,7 +12,7 @@
 
   <!-- Main Content Start -->
   <main>
-    <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+    <div class="p-4 md:p-5">
       <?php if (isset($content)) { echo $content; } else { $this->load->view($view ?? 'welcome_message'); } ?>
     </div>
   </main>

@@ -49,11 +49,25 @@ class Pegawai extends CI_Controller {
         }
 
     $data['current_jasa'] = $current;
-    // Show pending only if the latest/current item is not signed
-    $data['pending_current'] = ($current && empty($current->signed)) ? 1 : 0;
-    // Small history preview (latest 5 items)
+    // Small history preview (latest 6 items) – always show on dashboard
     $history_all = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, null, null);
-    $data['history_preview'] = is_array($history_all) ? array_slice($history_all, 0, 5) : array();
+    $data['history_preview'] = is_array($history_all) ? array_slice($history_all, 0, 6) : array();
+
+    // KPIs for Pegawai (YTD)
+    $data['ytd_netto'] = $this->Jasa_bonus_model->get_user_year_to_date_netto($user_id);
+    $data['ytd_pajak'] = $this->Jasa_bonus_model->get_user_year_to_date_pajak_total($user_id);
+    $data['ytd_avg'] = $this->Jasa_bonus_model->get_user_year_to_date_netto_avg($user_id);
+    $data['ytd_signed_percent'] = $this->Jasa_bonus_model->get_user_year_to_date_signed_percent($user_id);
+
+    // Unsigned list (for banner / call-to-action)
+    $all = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, date('Y'), 'unsigned');
+    $data['unsigned_list'] = $all;
+
+    // Line chart data for the whole current year (netto per month)
+    $year = (int)date('Y');
+    $line = $this->Jasa_bonus_model->get_user_monthly_netto_for_year($user_id, $year);
+    $data['line_categories'] = $line['categories'] ?? [];
+    $data['line_netto'] = $line['netto'] ?? [];
 
         $data['content'] = $this->load->view('pegawai/dashboard', $data, TRUE);
         $this->load->view('template/main', $data);
@@ -88,12 +102,12 @@ class Pegawai extends CI_Controller {
 
         if (empty($jasa_bonus_id) || empty($image_data_url)) {
             $this->session->set_flashdata('error', 'Data tidak lengkap.');
-            redirect('pegawai/dashboard');
+            redirect('pegawai/tanda-tangan');
             return;
         }
         if (empty($consent)) {
             $this->session->set_flashdata('error', 'Anda harus menyetujui pernyataan sebelum menandatangani.');
-            redirect('pegawai/dashboard');
+            redirect('pegawai/tanda-tangan');
             return;
         }
 
@@ -107,7 +121,7 @@ class Pegawai extends CI_Controller {
         // Cek sudah ditandatangani
         if ($this->Tanda_tangan_model->is_already_signed($jasa_bonus_id)) {
             $this->session->set_flashdata('error', 'Dokumen sudah ditandatangani.');
-            redirect('pegawai/dashboard');
+            redirect('pegawai/tanda-tangan');
             return;
         }
 
@@ -124,14 +138,14 @@ class Pegawai extends CI_Controller {
             $decoded = base64_decode($data_part);
             if ($decoded === false) {
                 $this->session->set_flashdata('error', 'Gagal memproses tanda tangan.');
-                redirect('pegawai/dashboard');
+                redirect('pegawai/tanda-tangan');
                 return;
             }
             $filename = 'ttd_user_' . $user_id . '_jb_' . $jasa_bonus_id . '_' . time() . '.' . $ext;
             $fullpath = $path . $filename;
             if (file_put_contents($fullpath, $decoded) === false) {
                 $this->session->set_flashdata('error', 'Gagal menyimpan tanda tangan.');
-                redirect('pegawai/dashboard');
+                redirect('pegawai/tanda-tangan');
                 return;
             }
             // Server-side normalization: resample to fixed size 600x220 with white background
@@ -199,6 +213,104 @@ class Pegawai extends CI_Controller {
             $this->session->set_flashdata('error', 'Gagal menyimpan tanda tangan ke database.');
         }
 
-        redirect('pegawai/dashboard');
+        redirect('pegawai/tanda-tangan');
+    }
+
+    /** Halaman khusus untuk tanda tangan */
+    public function tanda_tangan() {
+        $data['title'] = 'Tanda Tangan Dokumen';
+        $data['page_title'] = 'Tanda Tangan Dokumen';
+
+        $user_id = $this->session->userdata('user_id');
+        $year = $this->input->get('year');
+        $selected_id = $this->input->get('id');
+
+        // Ambil daftar dokumen yang belum TTD (filter tahun opsional)
+        $unsigned = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, $year ?: null, 'unsigned');
+        $data['unsigned_list'] = $unsigned;
+        $data['selected_year'] = $year;
+
+        // Tentukan dokumen yang dipilih untuk ditandatangani
+        $selected = null;
+        if (!empty($unsigned)) {
+            if (!empty($selected_id)) {
+                foreach ($unsigned as $row) {
+                    if ((string)$row->id === (string)$selected_id) { $selected = $row; break; }
+                }
+            }
+            if (!$selected) { $selected = $unsigned[0]; }
+        }
+        $data['current_jasa'] = $selected;
+
+        $data['content'] = $this->load->view('pegawai/sign', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+
+    /** Halaman Profil Pegawai */
+    public function profil() {
+        $data['title'] = 'Profil Saya';
+        $data['page_title'] = 'Profil Saya';
+        $user_id = $this->session->userdata('user_id');
+        $data['user'] = $this->User_model->get_user_by_id($user_id);
+        if (!$data['user']) { show_404(); }
+        $data['content'] = $this->load->view('pegawai/profile', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+
+    /** Simpan perubahan profil (tanpa password) */
+    public function profil_simpan() {
+        if ($this->input->method() !== 'post') { show_404(); }
+        $user_id = $this->session->userdata('user_id');
+        $me = $this->User_model->get_user_by_id($user_id);
+        if (!$me) { show_404(); }
+        // Ambil field yang aman untuk diubah oleh pegawai
+        $data = array(
+            'nama' => trim($this->input->post('nama')),
+            'username' => trim($this->input->post('username')),
+            'phone' => trim($this->input->post('phone')),
+            'ruangan' => trim($this->input->post('ruangan')),
+            'no_rekening' => trim($this->input->post('no_rekening')),
+        );
+        // Validasi sederhana
+        if ($data['username'] === '') { $this->session->set_flashdata('error', 'Username tidak boleh kosong.'); redirect('pegawai/profil'); return; }
+        if ($this->User_model->username_exists($data['username'], $user_id)) {
+            $this->session->set_flashdata('error', 'Username sudah digunakan.'); redirect('pegawai/profil'); return;
+        }
+        // NIK tidak diizinkan diubah oleh pegawai untuk integritas
+        // Simpan
+        if ($this->User_model->update_user($user_id, $data)) {
+            $this->session->set_flashdata('success', 'Profil berhasil diperbarui.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal menyimpan profil.');
+        }
+        redirect('pegawai/profil');
+    }
+
+    /** Ubah password */
+    public function profil_ubah_password() {
+        if ($this->input->method() !== 'post') { show_404(); }
+        $user_id = $this->session->userdata('user_id');
+        $me = $this->User_model->get_user_by_id($user_id);
+        if (!$me) { show_404(); }
+        $current = (string)$this->input->post('password_lama');
+        $new = (string)$this->input->post('password_baru');
+        $new2 = (string)$this->input->post('password_baru_konfirmasi');
+        if ($new === '' || $new2 === '') {
+            $this->session->set_flashdata('error', 'Password baru dan konfirmasi wajib diisi.'); redirect('pegawai/profil'); return;
+        }
+        if ($new !== $new2) {
+            $this->session->set_flashdata('error', 'Konfirmasi password tidak sama.'); redirect('pegawai/profil'); return;
+        }
+        // Verifikasi password lama
+        if (!password_verify($current, $me->password_hash)) {
+            $this->session->set_flashdata('error', 'Password lama tidak sesuai.'); redirect('pegawai/profil'); return;
+        }
+        // Set password
+        if ($this->User_model->set_password_only($user_id, $new)) {
+            $this->session->set_flashdata('success', 'Password berhasil diubah.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal mengubah password.');
+        }
+        redirect('pegawai/profil');
     }
 }
