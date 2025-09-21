@@ -41,8 +41,10 @@
         <tr class="border-y border-gray-100 dark:border-gray-800">
           <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Nama</th>
           <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Username</th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">HP</th>
           <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Ruangan</th>
           <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
           <th class="px-4 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">Aksi</th>
         </tr>
       </thead>
@@ -51,8 +53,18 @@
           <tr>
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300"><?= html_escape($u->nama) ?></td>
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300"><?= html_escape($u->username) ?></td>
+            <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300"><?= html_escape($u->phone ?? '') ?></td>
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300"><?= html_escape($u->ruangan) ?></td>
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 uppercase"><?= html_escape($u->role) ?></td>
+            <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+              <?php if ($u->role === 'admin'): ?>
+                <span class="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Admin</span>
+              <?php elseif ((int)($u->is_active ?? 0) === 1): ?>
+                <span class="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Aktif</span>
+              <?php else: ?>
+                <span class="rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">Belum Aktif</span>
+              <?php endif; ?>
+            </td>
             <td class="px-4 py-3 text-center">
               <div class="inline-flex items-center gap-2">
                 <?php 
@@ -66,10 +78,23 @@
                     'nik' => $u->nik,
                     'status_ptkp' => $u->status_ptkp,
                     'golongan' => $u->golongan,
+                    'phone' => $u->phone ?? '',
                   ];
                 ?>
                 <button @click='editUser = <?= json_encode($safeUser) ?>; openEditUser = true' class="rounded-lg bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-600 hover:bg-amber-500/20">Edit</button>
-                <form method="post" onsubmit="return confirm('Hapus user ini?')">
+                <?php if ($u->role !== 'admin'): ?>
+                  <form method="post" class="inline" onsubmit="return confirm('Kirim kode aktivasi via WhatsApp?')">
+                    <input type="hidden" name="action" value="send_activation_whatsapp" />
+                    <input type="hidden" name="id" value="<?= $u->id ?>" />
+                    <button type="submit" class="rounded-lg bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-600 hover:bg-emerald-500/20">Kirim WA</button>
+                  </form>
+                  <form method="post" class="inline" onsubmit="return confirm('Kirim kode aktivasi baru untuk user ini?')">
+                    <input type="hidden" name="action" value="generate_activation" />
+                    <input type="hidden" name="id" value="<?= $u->id ?>" />
+                    <button type="submit" class="rounded-lg bg-indigo-500/10 px-3 py-1 text-sm font-medium text-indigo-600 hover:bg-indigo-500/20">Kode Aktivasi</button>
+                  </form>
+                <?php endif; ?>
+                <form method="post" class="inline" onsubmit="return confirm('Hapus user ini?')">
                   <input type="hidden" name="action" value="delete" />
                   <input type="hidden" name="id" value="<?= $u->id ?>" />
                   <button type="submit" class="rounded-lg bg-red-500/10 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-500/20">Hapus</button>
@@ -99,6 +124,10 @@
         <div>
           <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Username</label>
           <input name="username" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" required />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">HP (WhatsApp)</label>
+          <input name="phone" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="62812xxxx" />
         </div>
         <div>
           <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Password</label>
@@ -137,6 +166,17 @@
         <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Simpan</button>
       </div>
     </form>
+    <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-800">
+      <h4 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Import Pegawai via CSV</h4>
+      <form method="post" enctype="multipart/form-data" class="space-y-3">
+        <input type="hidden" name="action" value="import_csv" />
+        <input type="file" name="csv_file" accept=".csv" class="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200 dark:text-gray-300 dark:file:bg-gray-800 dark:hover:file:bg-gray-700" required />
+  <p class="text-xs text-gray-500">Header: nik,nama,ruangan,asn,status_ptkp,golongan,username,phone (opsional). User dibuat non-aktif dengan kode aktivasi.</p>
+        <div class="flex justify-end">
+          <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Import</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -155,6 +195,10 @@
         <div>
           <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Username</label>
           <input name="username" :value="editUser.username" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" required />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">HP (WhatsApp)</label>
+          <input name="phone" :value="editUser.phone" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="62812xxxx" />
         </div>
         <div>
           <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Password (opsional)</label>

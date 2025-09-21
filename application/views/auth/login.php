@@ -52,7 +52,11 @@
                 </p>
               </div>
               
-              <?php if ($this->session->flashdata('error')): ?>
+              <?php if (!empty($error)): ?>
+                <div class="mb-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
+                  <?= $error ?>
+                </div>
+              <?php elseif ($this->session->flashdata('error')): ?>
                 <div class="mb-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
                   <?= $this->session->flashdata('error') ?>
                 </div>
@@ -140,6 +144,7 @@
                       >
                         Sign In
                       </button>
+                      <p class="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">Belum aktif? <a class="text-brand-600 hover:underline" href="<?= base_url('activate') ?>">Aktivasi akun</a></p>
                     </div>
                   </div>
                 </form>

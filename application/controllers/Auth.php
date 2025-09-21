@@ -1,6 +1,15 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Class Auth
+ * @property CI_Session $session
+ * @property CI_Input $input
+ * @property CI_Form_validation $form_validation
+ * @property CI_DB_query_builder $db
+ * @property User_model $User_model
+ * @property Whatsapp_sender $whatsapp_sender
+ */
 class Auth extends CI_Controller {
 
     public function __construct() {
@@ -40,6 +49,12 @@ class Auth extends CI_Controller {
                 $user = $this->User_model->login($username, $password);
 
                 if ($user) {
+                    // Handle pending activation marker
+                    if (is_object($user) && isset($user->pending_activation) && $user->pending_activation) {
+                        $this->session->set_flashdata('error', 'Akun Anda belum aktif. Silakan aktivasi terlebih dahulu.');
+                        redirect('auth/activate');
+                        return;
+                    }
                     // Set session data
                     $session_data = array(
                         'user_id' => $user->id,
@@ -54,13 +69,139 @@ class Auth extends CI_Controller {
                     $this->_redirect_by_role();
                     return;
                 } else {
-                    $data['error'] = 'Username atau password salah!';
+                    // Check if username exists but account is inactive
+                    $this->db->where('username', $username);
+                    $q = $this->db->get('users');
+                    if ($q->num_rows() === 1) {
+                        $row = $q->row();
+                        if ($row->role !== 'admin' && (int)($row->is_active ?? 0) === 0) {
+                            $data['error'] = 'Akun belum aktif. Silakan gunakan menu Aktivasi akun.';
+                        } else {
+                            $data['error'] = 'Username atau password salah!';
+                        }
+                    } else {
+                        $data['error'] = 'Username atau password salah!';
+                    }
                 }
             }
         }
 
         // Load view login
         $this->load->view('auth/login', isset($data) ? $data : array());
+    }
+
+    // Activation flow by WhatsApp phone + activation code -> set new password
+    public function activate() {
+        // If logged in already, just redirect
+        if ($this->session->userdata('logged_in')) {
+            $this->_redirect_by_role();
+            return;
+        }
+
+        $mode = $this->input->post('mode');
+        $data = [];
+        if (!$mode) { $mode = 'ask_phone'; }
+
+        if ($mode === 'ask_phone') {
+            if ($this->input->post()) {
+                $this->form_validation->set_rules('phone', 'Nomor WhatsApp', 'required|trim');
+                // nik optional: used when phone not found in DB to bind phone to the user
+                if ($this->input->post('nik')) {
+                    $this->form_validation->set_rules('nik', 'NIK', 'trim');
+                }
+                if ($this->form_validation->run() == FALSE) {
+                    $data['error'] = validation_errors();
+                } else {
+                    $phone = $this->input->post('phone', TRUE);
+                    $user = $this->User_model->get_user_by_phone($phone);
+                    if (!$user) {
+                        // Try bind by NIK if provided
+                        $nik = $this->input->post('nik', TRUE);
+                        if (!empty($nik)) {
+                            $userByNik = $this->User_model->get_user_by_nik($nik);
+                            if ($userByNik) {
+                                // Save phone into that user
+                                $this->User_model->update_user($userByNik->id, ['phone' => $phone]);
+                                $user = $userByNik;
+                            }
+                        }
+                    }
+                    if ($user) {
+                        // Generate or reuse activation code
+                        $code = $user->activation_code;
+                        if (empty($code) || (int)$user->is_active === 1) {
+                            $code = $this->User_model->set_activation_code($user->id);
+                        }
+                        if (!$code) {
+                            $data['error'] = 'Gagal menyiapkan kode aktivasi.';
+                        } else {
+                            // Send via WhatsApp (best-effort)
+                            $this->load->library('whatsapp_sender');
+                            $appName = 'Sistem TTD Jasa/Bonus';
+                            $msg = "Halo {$user->nama},\nKode aktivasi {$appName}: {$code}.\nMasukkan kode ini untuk aktivasi akun.";
+                            $res = $this->whatsapp_sender->send($phone, $msg);
+                            if (!$res['success']) {
+                                $data['error'] = 'Gagal mengirim WhatsApp: ' . (is_string($res['body']) ? $res['body'] : '');
+                                $data['phone'] = $phone;
+                                $mode = 'ask_phone';
+                            } else {
+                                $data['phone'] = $phone;
+                                $mode = 'verify_code';
+                            }
+                        }
+                    } else {
+                        $data['error'] = 'Nomor belum terdaftar. Masukkan NIK untuk mengaitkan nomor ini.';
+                        $data['ask_nik'] = true;
+                    }
+                }
+            }
+        } elseif ($mode === 'verify_code') {
+            $this->form_validation->set_rules('phone', 'Nomor WhatsApp', 'required|trim');
+            $this->form_validation->set_rules('activation_code', 'Kode Aktivasi', 'required|trim');
+            if ($this->form_validation->run() == FALSE) {
+                $data['error'] = validation_errors();
+                $mode = 'verify_code';
+            } else {
+                $phone = $this->input->post('phone', TRUE);
+                $code = $this->input->post('activation_code', TRUE);
+                $user = $this->User_model->verify_activation_code_by_phone($phone, $code);
+                if (!$user) {
+                    $data['error'] = 'Kode salah atau kadaluarsa.';
+                    $data['phone'] = $phone;
+                    $mode = 'verify_code';
+                } else {
+                    $data['user_id'] = $user->id;
+                    $mode = 'set_password';
+                }
+            }
+        } elseif ($mode === 'set_password') {
+            $this->form_validation->set_rules('user_id', 'User', 'required|integer');
+            $this->form_validation->set_rules('password', 'Password Baru', 'required|min_length[6]');
+            $this->form_validation->set_rules('password_confirm', 'Konfirmasi Password', 'required|matches[password]');
+            if ($this->form_validation->run() == FALSE) {
+                $data['error'] = validation_errors();
+                $data['user_id'] = $this->input->post('user_id');
+                $mode = 'set_password';
+            } else {
+                $uid = (int)$this->input->post('user_id');
+                $pass = $this->input->post('password', TRUE);
+                // Set password and activate account
+                $ok1 = $this->User_model->set_password_only($uid, $pass);
+                $ok2 = $this->User_model->activate_user($uid);
+                if ($ok1 && $ok2) {
+                    $this->session->set_flashdata('success', 'Aktivasi berhasil. Silakan login.');
+                    redirect('auth/login');
+                    return;
+                } else {
+                    $data['error'] = 'Gagal menyimpan password.';
+                    $data['user_id'] = $uid;
+                    $mode = 'set_password';
+                }
+            }
+        }
+
+        $data['mode'] = $mode;
+        $this->load->view('auth/activate', $data);
     }
 
     public function logout() {

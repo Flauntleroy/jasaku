@@ -16,9 +16,17 @@ class User_model extends CI_Model {
         if ($query->num_rows() == 1) {
             $user = $query->row();
             // Verify password - assume password is hashed with password_hash()
-            if (password_verify($password, $user->password_hash)) {
-                return $user;
+            if (!password_verify($password, $user->password_hash)) {
+                return FALSE;
             }
+            // Enforce activation for pegawai (admin can always login)
+            if ($user->role !== 'admin' && (int)$user->is_active !== 1) {
+                // Return a marker object or FALSE; we'll handle in controller by fetching user
+                return (object) array('pending_activation' => true, 'id' => $user->id, 'username' => $user->username, 'nama' => $user->nama, 'role' => $user->role);
+            }
+            // Update last_login
+            $this->db->where('id', $user->id)->update('users', array('last_login' => date('Y-m-d H:i:s')));
+            return $user;
         }
         return FALSE;
     }
@@ -30,10 +38,24 @@ class User_model extends CI_Model {
         return $query->row();
     }
 
+    // Get user by NIK
+    public function get_user_by_nik($nik) {
+        $this->db->where('nik', $nik);
+        $query = $this->db->get('users');
+        return $query->row();
+    }
+
     // Get all users
     public function get_all_users() {
         $query = $this->db->get('users');
         return $query->result();
+    }
+
+    // Get user by phone
+    public function get_user_by_phone($phone) {
+        $this->db->where('phone', $phone);
+        $query = $this->db->get('users');
+        return $query->row();
     }
 
     // Create new user
@@ -42,6 +64,10 @@ class User_model extends CI_Model {
         if (isset($data['password'])) {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
             unset($data['password']);
+        }
+        // Default inactive for pegawai if not explicitly active
+        if (!isset($data['is_active'])) {
+            $data['is_active'] = ($data['role'] ?? 'pegawai') === 'admin' ? 1 : 0;
         }
         
         return $this->db->insert('users', $data);
@@ -90,5 +116,102 @@ class User_model extends CI_Model {
         }
         $query = $this->db->get('users');
         return $query->num_rows() > 0;
+    }
+
+    // Generate and set activation code for a user id
+    public function set_activation_code($user_id, $code = null) {
+        if ($code === null) {
+            $code = bin2hex(random_bytes(8));
+        }
+        $this->db->where('id', $user_id);
+        $ok = $this->db->update('users', array('activation_code' => $code, 'is_active' => 0));
+        return $ok ? $code : false;
+    }
+
+    // Activate user with NIK and activation code, set password
+    public function activate_by_nik($nik, $activation_code, $new_password) {
+        $this->db->where('nik', $nik);
+        $this->db->where('activation_code', $activation_code);
+        $query = $this->db->get('users');
+        if ($query->num_rows() !== 1) return false;
+        $user = $query->row();
+        $hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $this->db->where('id', $user->id);
+        return $this->db->update('users', array(
+            'password_hash' => $hash,
+            'is_active' => 1,
+            'activation_code' => null,
+            'activated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+
+    // Verify activation code by phone
+    public function verify_activation_code_by_phone($phone, $activation_code) {
+        $this->db->where('phone', $phone);
+        $this->db->where('activation_code', $activation_code);
+        $query = $this->db->get('users');
+        return $query->row();
+    }
+
+    // Verify activation code by NIK
+    public function verify_activation_code_by_nik($nik, $activation_code) {
+        $this->db->where('nik', $nik);
+        $this->db->where('activation_code', $activation_code);
+        $query = $this->db->get('users');
+        return $query->row();
+    }
+
+    // Activate user by id (without changing password)
+    public function activate_user($user_id) {
+        $this->db->where('id', $user_id);
+        return $this->db->update('users', array(
+            'is_active' => 1,
+            'activation_code' => null,
+            'activated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+
+    // Set password only
+    public function set_password_only($user_id, $new_password) {
+        $hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $this->db->where('id', $user_id);
+        return $this->db->update('users', array('password_hash' => $hash));
+    }
+
+    // Batch create or upsert stub users from array of rows; each row minimally: nik, nama
+    public function batch_upsert_by_nik($rows) {
+        $created = 0; $updated = 0; $errors = [];
+        foreach ($rows as $i => $r) {
+            $nik = trim($r['nik'] ?? '');
+            $nama = trim($r['nama'] ?? '');
+            if ($nik === '' || $nama === '') { $errors[] = "Baris ".($i+1).": NIK/Nama kosong"; continue; }
+            // Try to find existing by NIK
+            $this->db->where('nik', $nik);
+            $q = $this->db->get('users');
+            $payload = array(
+                'nama' => $nama,
+                'ruangan' => $r['ruangan'] ?? null,
+                'asn' => $r['asn'] ?? 'Tidak',
+                'status_ptkp' => $r['status_ptkp'] ?? null,
+                'golongan' => $r['golongan'] ?? null,
+                'nik' => $nik,
+                'role' => 'pegawai',
+                'username' => $r['username'] ?? $nik,
+                'phone' => $r['phone'] ?? null,
+                'is_active' => 0,
+            );
+            if ($q->num_rows() === 0) {
+                // Set temp password to random (won't be used until activation)
+                $payload['password_hash'] = password_hash(bin2hex(random_bytes(6)), PASSWORD_DEFAULT);
+                if ($this->db->insert('users', $payload)) { $created++; } else { $errors[] = "Baris ".($i+1).": gagal insert"; }
+            } else {
+                $user = $q->row();
+                // Don't overwrite username if exists
+                unset($payload['username']);
+                $this->db->where('id', $user->id);
+                if ($this->db->update('users', $payload)) { $updated++; } else { $errors[] = "Baris ".($i+1).": gagal update"; }
+            }
+        }
+        return compact('created','updated','errors');
     }
 }
