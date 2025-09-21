@@ -127,9 +127,15 @@ class Auth extends CI_Controller {
                         }
                     }
                     if ($user) {
-                        // Generate or reuse activation code
+                        // Jika akun sudah aktif, arahkan ke login dan jangan ubah status aktif
+                        if ((int)$user->is_active === 1) {
+                            $this->session->set_flashdata('success', 'Akun Anda sudah aktif. Silakan login.');
+                            redirect('auth/login');
+                            return;
+                        }
+                        // Generate (atau gunakan ulang) kode aktivasi untuk akun yang belum aktif
                         $code = $user->activation_code;
-                        if (empty($code) || (int)$user->is_active === 1) {
+                        if (empty($code)) {
                             $code = $this->User_model->set_activation_code($user->id);
                         }
                         if (!$code) {
@@ -185,9 +191,9 @@ class Auth extends CI_Controller {
             } else {
                 $uid = (int)$this->input->post('user_id');
                 $pass = $this->input->post('password', TRUE);
-                // Set password and activate account
+                // Set password dan aktifkan akun; lakukan berurutan agar status pasti aktif
                 $ok1 = $this->User_model->set_password_only($uid, $pass);
-                $ok2 = $this->User_model->activate_user($uid);
+                $ok2 = $ok1 ? $this->User_model->activate_user($uid) : false;
                 if ($ok1 && $ok2) {
                     $this->session->set_flashdata('success', 'Aktivasi berhasil. Silakan login.');
                     redirect('auth/login');

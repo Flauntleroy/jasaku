@@ -12,6 +12,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @property Tanda_tangan_model $Tanda_tangan_model
  * @property Csv_export $csv_export
  * @property Whatsapp_sender $whatsapp_sender
+ * @property Excel_export $excel_export
  */
 class Admin extends CI_Controller {
 
@@ -69,6 +70,12 @@ class Admin extends CI_Controller {
     public function jasa_bonus() {
         $data['title'] = 'Data Jasa/Bonus';
         $data['page_title'] = 'Data Jasa/Bonus';
+        
+        // Handle GET export/template first
+        $export = $this->input->get('export');
+        $template = $this->input->get('template');
+        if ($export === 'xlsx') { $this->export_jasa_bonus_xlsx(); return; }
+        if ($template === 'xlsx') { $this->download_jasa_template_xlsx(); return; }
         
         // Handle form submission
         if ($this->input->post('action')) {
@@ -297,12 +304,23 @@ class Admin extends CI_Controller {
             $this->update_jasa_bonus();
         } elseif ($action == 'delete') {
             $this->delete_jasa_bonus();
+        } elseif ($action == 'send_ttd_request') {
+            $this->send_ttd_request();
+        } elseif ($action == 'create_bulk') {
+            $this->create_jasa_bonus_bulk();
+        } elseif ($action == 'import_xlsx') {
+            $this->import_jasa_bonus_xlsx();
         }
     }
 
     private function create_jasa_bonus() {
         $this->form_validation->set_rules('user_id', 'Pegawai', 'required');
-        $this->form_validation->set_rules('periode', 'Periode', 'required');
+        // Support either periode (date) or periode_month (YYYY-MM)
+        if ($this->input->post('periode_month')) {
+            $this->form_validation->set_rules('periode_month', 'Periode', 'required');
+        } else {
+            $this->form_validation->set_rules('periode', 'Periode', 'required');
+        }
         $this->form_validation->set_rules('terima_sebelum_pajak', 'Terima Sebelum Pajak', 'required|numeric');
         $this->form_validation->set_rules('terima_setelah_pajak', 'Terima Setelah Pajak', 'required|numeric');
         
@@ -311,6 +329,11 @@ class Admin extends CI_Controller {
         } else {
             $user_id = $this->input->post('user_id');
             $periode = $this->input->post('periode');
+            $periode_month = $this->input->post('periode_month');
+            if (!empty($periode_month) && preg_match('/^\d{4}-\d{2}$/', $periode_month)) {
+                // Convert 2025-09 -> 2025-09-01
+                $periode = $periode_month . '-01';
+            }
             
             // Check if period already exists for this user
             if ($this->Jasa_bonus_model->period_exists_for_user($user_id, $periode)) {
@@ -328,6 +351,21 @@ class Admin extends CI_Controller {
                 
                 if ($this->Jasa_bonus_model->create_jasa_bonus($data)) {
                     $this->session->set_flashdata('success', 'Data jasa/bonus berhasil ditambahkan.');
+                    // Optional: auto send WA request after create
+                    if ($this->input->post('send_wa_after_create')) {
+                        // find the just-created record id
+                        $this->db->select('id');
+                        $this->db->from('jasa_bonus');
+                        $this->db->where('user_id', $user_id);
+                        $this->db->where('periode', $periode);
+                        $this->db->order_by('id', 'DESC');
+                        $jb = $this->db->get()->row();
+                        if ($jb && isset($jb->id)) {
+                            $_POST['id'] = $jb->id; // set for internal call
+                            $this->send_ttd_request();
+                            return; // send_ttd_request already redirects
+                        }
+                    }
                 } else {
                     $this->session->set_flashdata('error', 'Gagal menambahkan data jasa/bonus.');
                 }
@@ -376,6 +414,82 @@ class Admin extends CI_Controller {
         redirect('admin/jasa-bonus');
     }
 
+    /** Kirim permintaan TTD ke pegawai via WhatsApp untuk satu entri jasa/bonus */
+    private function send_ttd_request() {
+        $id = $this->input->post('id');
+        if (!$id) { redirect('admin/jasa-bonus'); return; }
+
+        $jb = $this->Jasa_bonus_model->get_jasa_bonus_by_id($id);
+        if (!$jb) { $this->session->set_flashdata('error', 'Data tidak ditemukan.'); redirect('admin/jasa-bonus'); return; }
+
+        // Sudah ditandatangani?
+        if ($this->Tanda_tangan_model->is_already_signed($id)) {
+            $this->session->set_flashdata('error', 'Dokumen ini sudah ditandatangani.');
+            redirect('admin/jasa-bonus'); return;
+        }
+
+        // Ambil user untuk nomor HP
+        $user = $this->User_model->get_user_by_id($jb->user_id);
+        if (!$user) { $this->session->set_flashdata('error', 'Pegawai tidak ditemukan.'); redirect('admin/jasa-bonus'); return; }
+        if (empty($user->phone)) { $this->session->set_flashdata('error', 'Nomor HP pegawai kosong. Lengkapi dulu di menu Pegawai.'); redirect('admin/jasa-bonus'); return; }
+
+        // Kirim WA
+        $this->load->library('whatsapp_sender');
+        $periode = date('F Y', strtotime($jb->periode));
+        $loginUrl = base_url('auth/login');
+        $dashboardUrl = base_url('pegawai/dashboard');
+        $msg = "Halo {$user->nama},\n".
+               "Terdapat dokumen Jasa/Bonus periode {$periode} yang perlu ditandatangani.\n".
+               "Rincian: Setelah pajak Rp ".number_format((float)$jb->terima_setelah_pajak, 0, ',', '.')."\n".
+               "Silakan login: {$loginUrl} lalu buka Dashboard: {$dashboardUrl} untuk menandatangani.";
+        $res = $this->whatsapp_sender->send($user->phone, $msg);
+        if ($res['success']) {
+            $this->session->set_flashdata('success', 'Permintaan TTD dikirim via WhatsApp.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal kirim permintaan TTD: '.$res['body']);
+        }
+        redirect('admin/jasa-bonus');
+    }
+
+    /** Tambah jasa/bonus untuk banyak pegawai sekaligus */
+    private function create_jasa_bonus_bulk() {
+        $user_ids = $this->input->post('user_ids'); // array
+        $periode = $this->input->post('periode');
+        $terima_sebelum_pajak = $this->input->post('terima_sebelum_pajak');
+        $pajak_5 = $this->input->post('pajak_5') ?: 0;
+        $pajak_15 = $this->input->post('pajak_15') ?: 0;
+        $pajak_0 = $this->input->post('pajak_0') ?: 0;
+        $terima_setelah_pajak = $this->input->post('terima_setelah_pajak');
+
+        if (!is_array($user_ids) || empty($user_ids)) {
+            $this->session->set_flashdata('error', 'Pilih minimal satu pegawai.');
+            redirect('admin/jasa-bonus'); return;
+        }
+        if (empty($periode) || empty($terima_sebelum_pajak) || empty($terima_setelah_pajak)) {
+            $this->session->set_flashdata('error', 'Lengkapi periode dan nominal.');
+            redirect('admin/jasa-bonus'); return;
+        }
+
+        $created = 0; $skipped = 0;
+        foreach ($user_ids as $uid) {
+            if ($this->Jasa_bonus_model->period_exists_for_user($uid, $periode)) { $skipped++; continue; }
+            $data = array(
+                'user_id' => $uid,
+                'periode' => $periode,
+                'terima_sebelum_pajak' => $terima_sebelum_pajak,
+                'pajak_5' => $pajak_5,
+                'pajak_15' => $pajak_15,
+                'pajak_0' => $pajak_0,
+                'terima_setelah_pajak' => $terima_setelah_pajak
+            );
+            if ($this->Jasa_bonus_model->create_jasa_bonus($data)) { $created++; }
+        }
+
+        $msg = "Tambah massal selesai. Dibuat: {$created}. Dilewati (sudah ada): {$skipped}.";
+        $this->session->set_flashdata('success', $msg);
+        redirect('admin/jasa-bonus');
+    }
+
     private function export_laporan() {
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
@@ -385,5 +499,136 @@ class Admin extends CI_Controller {
         // Load PHPSpreadsheet or create CSV export
         $this->load->library('csv_export');
         $this->csv_export->export_laporan($laporan, $start_date, $end_date);
+    }
+
+    /** Export semua data jasa/bonus ke Excel sesuai format yang diminta
+     *  @property Excel_export $excel_export
+     */
+    private function export_jasa_bonus_xlsx() {
+        $rows = $this->Jasa_bonus_model->get_jasa_bonus_with_signature();
+        $periodeTitle = 'Export Jasa/Bonus - dibuat '.date('d M Y H:i');
+        $this->load->library('excel_export');
+        $this->excel_export->export_jasa_bonus($rows, $periodeTitle);
+    }
+
+    /** Download template kosong untuk diisi (format Excel) */
+    private function download_jasa_template_xlsx() {
+        $rows = [];
+        $periodeTitle = 'Template Import Jasa/Bonus (isi baris mulai di bawah header)';
+        $this->load->library('excel_export');
+        $this->excel_export->export_jasa_bonus($rows, $periodeTitle);
+    }
+
+    /** Import data jasa/bonus dari file Excel sesuai template */
+    private function import_jasa_bonus_xlsx() {
+        // Perlu periode (bulan)
+        $periode_month = $this->input->post('periode_month');
+        if (empty($periode_month) || !preg_match('/^\d{4}-\d{2}$/', $periode_month)) {
+            $this->session->set_flashdata('error', 'Periode (bulan) wajib diisi.');
+            redirect('admin/jasa-bonus'); return;
+        }
+        $periode = $periode_month.'-01';
+
+        if (!isset($_FILES['xlsx_file']) || $_FILES['xlsx_file']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('error', 'File Excel tidak valid.');
+            redirect('admin/jasa-bonus'); return;
+        }
+
+        $tmp = $_FILES['xlsx_file']['tmp_name'];
+        try {
+            // Baca file menggunakan PhpSpreadsheet
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($tmp);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($tmp);
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Deteksi baris header teratas (kolom A berisi 'No')
+            $headerTop = 1;
+            for ($r=1; $r<=10; $r++) {
+                $val = trim((string)$sheet->getCell('A'.$r)->getFormattedValue());
+                if (strcasecmp($val, 'No') === 0) { $headerTop = $r; break; }
+            }
+            $dataStart = $headerTop + 2; // header 2 baris
+
+            $lastRow = $sheet->getHighestRow();
+            $entries = [];
+            for ($row = $dataStart; $row <= $lastRow; $row++) {
+                $nama = trim((string)$sheet->getCell('B'.$row)->getFormattedValue());
+                $nik  = trim((string)$sheet->getCell('E'.$row)->getFormattedValue());
+                // Stop bila baris kosong
+                if ($nama === '' && $nik === '') { continue; }
+
+                $ruangan = trim((string)$sheet->getCell('C'.$row)->getFormattedValue());
+                $asn = trim((string)$sheet->getCell('D'.$row)->getFormattedValue());
+                $status_ptkp = trim((string)$sheet->getCell('F'.$row)->getFormattedValue());
+                $golongan = trim((string)$sheet->getCell('G'.$row)->getFormattedValue());
+
+                $bruto = (float)str_replace([','], [''], (string)$sheet->getCell('H'.$row)->getCalculatedValue());
+                $p5    = (float)str_replace([','], [''], (string)$sheet->getCell('I'.$row)->getCalculatedValue());
+                $p15   = (float)str_replace([','], [''], (string)$sheet->getCell('J'.$row)->getCalculatedValue());
+                $p0    = (float)str_replace([','], [''], (string)$sheet->getCell('K'.$row)->getCalculatedValue());
+                $nettoCell = $sheet->getCell('L'.$row);
+                $netto = $nettoCell->isFormula() ? (float)$nettoCell->getCalculatedValue() : (float)str_replace([','], [''], (string)$nettoCell->getValue());
+                if ($netto <= 0) { $netto = max(0, $bruto - ($p5 + $p15 + $p0)); }
+
+                $entries[] = compact('nik','nama','ruangan','asn','status_ptkp','golongan','bruto','p5','p15','p0','netto');
+            }
+
+            if (empty($entries)) {
+                $this->session->set_flashdata('error', 'Tidak ada baris data yang terbaca dari file.');
+                redirect('admin/jasa-bonus'); return;
+            }
+
+            // Upsert pegawai berdasarkan NIK terlebih dulu
+            $userRows = [];
+            foreach ($entries as $e) {
+                $userRows[] = [
+                    'nik' => $e['nik'],
+                    'nama' => $e['nama'],
+                    'ruangan' => $e['ruangan'],
+                    'asn' => $e['asn'],
+                    'status_ptkp' => $e['status_ptkp'],
+                    'golongan' => $e['golongan'],
+                ];
+            }
+            // Hapus duplikasi NIK untuk efisiensi
+            $seen = [];$uniqueUserRows = [];
+            foreach ($userRows as $ur) { if (!isset($seen[$ur['nik']])) { $uniqueUserRows[] = $ur; $seen[$ur['nik']] = true; } }
+            $this->User_model->batch_upsert_by_nik($uniqueUserRows);
+
+            // Insert/update jasa_bonus per baris
+            $created = 0; $updated = 0; $skipped = 0; $errors = 0;
+            foreach ($entries as $e) {
+                if (empty($e['nik'])) { $errors++; continue; }
+                $user = $this->User_model->get_user_by_nik($e['nik']);
+                if (!$user) { $errors++; continue; }
+
+                $data = array(
+                    'terima_sebelum_pajak' => $e['bruto'],
+                    'pajak_5' => $e['p5'],
+                    'pajak_15' => $e['p15'],
+                    'pajak_0' => $e['p0'],
+                    'terima_setelah_pajak' => $e['netto'],
+                );
+
+                // Ada data periode ini?
+                if ($this->Jasa_bonus_model->period_exists_for_user($user->id, $periode)) {
+                    // Update
+                    $this->db->where('user_id', $user->id);
+                    $this->db->where('periode', $periode);
+                    if ($this->db->update('jasa_bonus', $data)) { $updated++; } else { $errors++; }
+                } else {
+                    $data['user_id'] = $user->id; $data['periode'] = $periode;
+                    if ($this->db->insert('jasa_bonus', $data)) { $created++; } else { $errors++; }
+                }
+            }
+
+            $msg = "Import XLSX selesai. Dibuat: {$created}, diperbarui: {$updated}.";
+            if ($errors) { $msg .= " Error: {$errors}."; }
+            $this->session->set_flashdata('success', $msg);
+        } catch (\Throwable $e) {
+            $this->session->set_flashdata('error', 'Gagal memproses file Excel: '.$e->getMessage());
+        }
+        redirect('admin/jasa-bonus');
     }
 }
