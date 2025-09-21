@@ -1,0 +1,203 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/**
+ * @property CI_Session $session
+ * @property CI_Input $input
+ * @property User_model $User_model
+ * @property Jasa_bonus_model $Jasa_bonus_model
+ * @property Tanda_tangan_model $Tanda_tangan_model
+ */
+class Pegawai extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+    $this->load->model('User_model');
+        $this->load->model('Jasa_bonus_model');
+        $this->load->model('Tanda_tangan_model');
+        $this->load->library('form_validation');
+    $this->load->library('session');
+
+        $this->check_pegawai_access();
+    }
+
+    private function check_pegawai_access() {
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth/login');
+        }
+        if ($this->session->userdata('role') !== 'pegawai') {
+            show_404();
+        }
+    }
+
+    public function dashboard() {
+        $data['title'] = 'Dashboard Pegawai';
+        $data['page_title'] = 'Dashboard Pegawai';
+
+        $user_id = $this->session->userdata('user_id');
+        $jasa_list = $this->Jasa_bonus_model->get_jasa_bonus_by_user($user_id);
+
+        $current = null;
+        if (!empty($jasa_list)) {
+            // Ambil entri terbaru (sudah di-order DESC oleh model)
+            $current = $jasa_list[0];
+            // Cek status TTD
+            $ttd = $this->Tanda_tangan_model->get_by_jasa_bonus_id($current->id);
+            $current->signed = $ttd ? true : false;
+            $current->signed_at = $ttd ? $ttd->signed_at : null;
+            $current->tanda_tangan_image = $ttd ? $ttd->tanda_tangan_image : null;
+        }
+
+    $data['current_jasa'] = $current;
+    // Show pending only if the latest/current item is not signed
+    $data['pending_current'] = ($current && empty($current->signed)) ? 1 : 0;
+    // Small history preview (latest 5 items)
+    $history_all = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, null, null);
+    $data['history_preview'] = is_array($history_all) ? array_slice($history_all, 0, 5) : array();
+
+        $data['content'] = $this->load->view('pegawai/dashboard', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+
+    public function history() {
+        $data['title'] = 'Riwayat TTD';
+        $data['page_title'] = 'Riwayat TTD';
+        $user_id = $this->session->userdata('user_id');
+        $year = $this->input->get('year');
+        $status = $this->input->get('status'); // 'signed' | 'unsigned' | ''
+
+        $data['years'] = $this->Jasa_bonus_model->get_years_for_user($user_id);
+        $data['selected_year'] = $year;
+        $data['selected_status'] = $status;
+        $data['rows'] = $this->Jasa_bonus_model->get_user_jasa_with_signature_filtered($user_id, $year ?: null, $status ?: null);
+
+        $data['content'] = $this->load->view('pegawai/history', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+
+    public function sign() {
+        // Validasi method
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $user_id = $this->session->userdata('user_id');
+        $jasa_bonus_id = $this->input->post('jasa_bonus_id');
+    $image_data_url = $this->input->post('signature');
+    $consent = $this->input->post('consent');
+
+        if (empty($jasa_bonus_id) || empty($image_data_url)) {
+            $this->session->set_flashdata('error', 'Data tidak lengkap.');
+            redirect('pegawai/dashboard');
+            return;
+        }
+        if (empty($consent)) {
+            $this->session->set_flashdata('error', 'Anda harus menyetujui pernyataan sebelum menandatangani.');
+            redirect('pegawai/dashboard');
+            return;
+        }
+
+        // Pastikan jasa ini milik user
+        $jasa = $this->Jasa_bonus_model->get_jasa_bonus_by_id($jasa_bonus_id);
+        if (!$jasa || (int)$jasa->user_id !== (int)$user_id) {
+            show_404();
+        }
+
+        // Cek sudah ditandatangani
+        if ($this->Tanda_tangan_model->is_already_signed($jasa_bonus_id)) {
+            $this->session->set_flashdata('error', 'Dokumen sudah ditandatangani.');
+            redirect('pegawai/dashboard');
+            return;
+        }
+
+        // Simpan gambar signature dari data URL
+        $path = FCPATH . 'assets/images/signatures/';
+        if (!is_dir($path)) {
+            @mkdir($path, 0777, true);
+        }
+
+        $image_path_rel = null;
+        if (preg_match('/^data:image\/(png|jpeg);base64,/', $image_data_url, $matches)) {
+            $ext = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
+            $data_part = substr($image_data_url, strpos($image_data_url, ',') + 1);
+            $decoded = base64_decode($data_part);
+            if ($decoded === false) {
+                $this->session->set_flashdata('error', 'Gagal memproses tanda tangan.');
+                redirect('pegawai/dashboard');
+                return;
+            }
+            $filename = 'ttd_user_' . $user_id . '_jb_' . $jasa_bonus_id . '_' . time() . '.' . $ext;
+            $fullpath = $path . $filename;
+            if (file_put_contents($fullpath, $decoded) === false) {
+                $this->session->set_flashdata('error', 'Gagal menyimpan tanda tangan.');
+                redirect('pegawai/dashboard');
+                return;
+            }
+            // Server-side normalization: resample to fixed size 600x220 with white background
+            $normalizedW = 600;
+            $normalizedH = 220;
+            $src = null;
+            $mime = $matches[1];
+            if (function_exists('imagecreatetruecolor')) {
+                // Load source image depending on mime
+                if ($mime === 'png') {
+                    $src = @imagecreatefrompng($fullpath);
+                } elseif ($mime === 'jpeg' || $mime === 'jpg') {
+                    $src = @imagecreatefromjpeg($fullpath);
+                }
+                if ($src) {
+                    $srcW = imagesx($src);
+                    $srcH = imagesy($src);
+                    $dst = imagecreatetruecolor($normalizedW, $normalizedH);
+                    // Fill white background
+                    $white = imagecolorallocate($dst, 255, 255, 255);
+                    imagefilledrectangle($dst, 0, 0, $normalizedW, $normalizedH, $white);
+                    // Aspect-fit scale with letterboxing
+                    $scale = min($normalizedW / max($srcW, 1), $normalizedH / max($srcH, 1));
+                    $dstW = (int) floor($srcW * $scale);
+                    $dstH = (int) floor($srcH * $scale);
+                    $dstX = (int) floor(($normalizedW - $dstW) / 2);
+                    $dstY = (int) floor(($normalizedH - $dstH) / 2);
+                    imagecopyresampled($dst, $src, $dstX, $dstY, 0, 0, $dstW, $dstH, $srcW, $srcH);
+                    // Always save as PNG to standardize format
+                    imagepng($dst, $fullpath);
+                    imagedestroy($dst);
+                    imagedestroy($src);
+                    // Ensure extension in path remains consistent (we saved PNG regardless)
+                    if ($ext !== 'png') {
+                        // Rename to .png
+                        $newFilename = preg_replace('/\.(jpe?g)$/i', '.png', $filename);
+                        $newFullpath = $path . $newFilename;
+                        // If rename fails, keep original name but content is PNG
+                        @rename($fullpath, $newFullpath);
+                        if (file_exists($newFullpath)) {
+                            $filename = $newFilename;
+                            $fullpath = $newFullpath;
+                        }
+                    }
+                }
+            }
+            $image_path_rel = 'assets/images/signatures/' . $filename;
+        } else {
+            $this->session->set_flashdata('error', 'Format tanda tangan tidak valid.');
+            redirect('pegawai/dashboard');
+            return;
+        }
+
+        // Simpan ke database
+        $data_insert = array(
+            'jasa_bonus_id' => $jasa_bonus_id,
+            'user_id' => $user_id,
+            'signed_at' => date('Y-m-d H:i:s'),
+            'tanda_tangan_image' => $image_path_rel,
+        );
+
+        if ($this->Tanda_tangan_model->create_tanda_tangan($data_insert)) {
+            $this->session->set_flashdata('success', 'Tanda tangan berhasil disimpan.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal menyimpan tanda tangan ke database.');
+        }
+
+        redirect('pegawai/dashboard');
+    }
+}
