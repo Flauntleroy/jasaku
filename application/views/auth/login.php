@@ -9,6 +9,10 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <title>Login - Sistem Tanda Tangan Digital Jasa/Bonus</title>
   <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" />
+  <link rel="manifest" href="<?= base_url('assets/manifest.webmanifest?v=1') ?>">
+  <meta name="theme-color" content="#475569" />
+  <link rel="apple-touch-icon" sizes="192x192" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
+  <link rel="apple-touch-icon" sizes="512x512" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -146,16 +150,16 @@
         <div class="w-full max-w-md animate-slide-up">
           <!-- Header -->
           <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-brand-500/10 rounded-2xl mb-6">
-              <svg class="w-8 h-8 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
+            <div class="inline-flex items-center justify-center w-33 h-33">
+              <img src="<?= base_url('assets/images/logo/jasaku-login.png'); ?>" 
+                  alt="Logo Jasa-Ku"
+                  class="w-33 h-33 object-contain">
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome Back
-            </h1>
+            <!-- <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Jasa-Ku
+            </h1> -->
             <p class="text-gray-500 dark:text-gray-400">
-              Masukkan kredensial Anda untuk mengakses akun
+              <!-- Login untuk mengakses sistem tanda tangan digital jasa -->
             </p>
           </div>
 
@@ -249,16 +253,22 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                 </svg>
-                Masuk ke Akun
+                Login
               </span>
             </button>
 
             <!-- Additional Link -->
             <div class="text-center">
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                Belum memiliki akun? 
+                Belum punya akun? 
                 <a href="<?= base_url('auth/activate') ?>" class="text-brand-500 hover:text-brand-600 font-medium hover:underline transition-all">
                   Aktivasi Akun
+                </a>
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Lupa password? 
+                <a href="<?= base_url('auth/forgot_password') ?>" class="text-brand-500 hover:text-brand-600 font-medium hover:underline transition-all">
+                  Reset Password
                 </a>
               </p>
             </div>
@@ -276,17 +286,23 @@
 
         <!-- Content -->
         <div class="relative z-10 text-center max-w-md animate-fade-in">
-          <div class="inline-flex items-center justify-center w-24 h-24 bg-white dark:bg-gray-800 rounded-3xl shadow-xl mb-8">
+          <!-- <div class="inline-flex items-center justify-center w-24 h-24 bg-white dark:bg-gray-800 rounded-3xl shadow-xl mb-8">
             <svg class="w-12 h-12 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-          </div>
+          </div> -->
           
-          <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Sistem Tanda Tangan Digital
+          <h2 class="text-xl text-gray-600 dark:text-gray-400 mb-8">
+            Sistem Tanda Tangan Jasa Digital
           </h2>
           
-          <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            RSUD H. ABDUL AZIZ MARABAHAN
+          </h1>
+
+          
+          
+          <!-- <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
             Jasa & Bonus
           </p>
           
@@ -308,7 +324,7 @@
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
               </svg>
               <span>Hasil Profesional</span>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

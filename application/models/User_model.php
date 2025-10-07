@@ -80,9 +80,38 @@ class User_model extends CI_Model {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
             unset($data['password']);
         }
-        
+        // Filter only columns that actually exist in the users table to avoid SQL errors
+        // (e.g., when a new field like no_rekening hasn't been migrated yet)
+        $payload = [];
+        try {
+            $fields = $this->db->list_fields('users');
+        } catch (Exception $e) {
+            // Fallback: if list_fields fails, proceed with raw data (best effort)
+            $fields = [];
+        }
+        if (!empty($fields)) {
+            $allowed = array_flip($fields);
+            // never allow updating primary key via payload
+            unset($allowed['id']);
+            foreach ($data as $k => $v) {
+                if (isset($allowed[$k])) { $payload[$k] = $v; }
+            }
+        } else {
+            // If we couldn't detect fields, at least avoid obvious problematic keys
+            $payload = $data;
+            unset($payload['id']);
+        }
+
+        // Nothing to update? Consider it success.
+        if (empty($payload)) { return TRUE; }
+
         $this->db->where('id', $id);
-        return $this->db->update('users', $data);
+        $ok = $this->db->update('users', $payload);
+        if (!$ok) {
+            $err = $this->db->error();
+            log_message('error', 'User_model::update_user failed for id '.$id.' - '.$err['code'].': '.$err['message']);
+        }
+        return $ok;
     }
 
     // Delete user
@@ -121,11 +150,47 @@ class User_model extends CI_Model {
     // Generate and set activation code for a user id
     public function set_activation_code($user_id, $code = null) {
         if ($code === null) {
-            $code = bin2hex(random_bytes(8));
+            // Generate 6-digit numeric OTP (000000 - 999999)
+            try {
+                $num = random_int(0, 999999);
+            } catch (Exception $e) {
+                // Fallback to mt_rand if random_int unavailable
+                $num = mt_rand(0, 999999);
+            }
+            $code = str_pad((string)$num, 6, '0', STR_PAD_LEFT);
         }
         $this->db->where('id', $user_id);
         $ok = $this->db->update('users', array('activation_code' => $code, 'is_active' => 0));
         return $ok ? $code : false;
+    }
+    
+    // Set reset password code
+    public function set_reset_code($user_id, $reset_code, $expiry) {
+        $data = array(
+            'reset_code' => $reset_code,
+            'reset_expiry' => $expiry
+        );
+        $this->db->where('id', $user_id);
+        return $this->db->update('users', $data);
+    }
+    
+    // Verify reset code by phone
+    public function verify_reset_code_by_phone($phone, $code) {
+        $this->db->where('phone', $phone);
+        $this->db->where('reset_code', $code);
+        $this->db->where('reset_expiry >', date('Y-m-d H:i:s'));
+        $query = $this->db->get('users');
+        return $query->row();
+    }
+    
+    // Clear reset code
+    public function clear_reset_code($user_id) {
+        $data = array(
+            'reset_code' => NULL,
+            'reset_expiry' => NULL
+        );
+        $this->db->where('id', $user_id);
+        return $this->db->update('users', $data);
     }
 
     // Activate user with NIK and activation code, set password
