@@ -34,7 +34,7 @@
       </select>
     </div>
     <div class="flex items-end">
-      <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white" style="background-color:#2563eb">Terapkan</button>
+      <button type="submit" class="rounded-lg bg-dark px-4 py-2 text-sm font-medium text-white" style="background-color:#1d2939">Terapkan</button>
     </div>
   </form>
 

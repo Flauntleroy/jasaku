@@ -2,7 +2,7 @@
 <!-- Header -->
 <header x-data="{menuToggle: false}" class="sticky top-0 z-99999 flex w-full border-gray-200 bg-white lg:border-b dark:border-gray-800 dark:bg-gray-900">
   <div class="flex grow flex-col items-center justify-between lg:flex-row lg:px-6">
-    <div class="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4 dark:border-gray-800">
+  <div class="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4 dark:border-gray-800">
       <!-- Modern Hamburger Toggle BTN -->
       <button 
         :class="sidebarToggle ? 'bg-blue-600 ring-2 ring-blue-200 shadow-lg dark:bg-blue-500 dark:ring-blue-400/50' : 'bg-gray-800 hover:bg-blue-600 shadow-md dark:bg-gray-700 dark:hover:bg-blue-500'" 
@@ -33,6 +33,9 @@
           <!-- Optional search or actions -->
         </form>
       </div>
+      <span class="sm:hidden ml-auto text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[45vw] truncate">
+                <?= html_escape($this->session->userdata('nama') ?? '') ?>
+        </span>    
     </div>
 
     <div :class="menuToggle ? 'flex' : 'hidden'" class="shadow-theme-md w-full items-center justify-between gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none">
@@ -50,8 +53,7 @@
           </svg>
         </button>
 
-        <span class="hidden sm:block text-sm text-gray-600 dark:text-gray-400 font-medium"><?= $this->session->userdata('nama') ?></span>
-        
+            
         <!-- Enhanced Logout Button -->
         <a href="<?= base_url('auth/logout') ?>" class="group relative overflow-hidden rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:text-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg">
           <span class="absolute inset-0 w-0 bg-gradient-to-r from-red-500 to-pink-600 transition-all duration-300 ease-out group-hover:w-full"></span>

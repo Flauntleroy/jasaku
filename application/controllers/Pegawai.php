@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * @property CI_Session $session
  * @property CI_Input $input
+ * @property CI_DB_query_builder $db
  * @property User_model $User_model
  * @property Jasa_bonus_model $Jasa_bonus_model
  * @property Tanda_tangan_model $Tanda_tangan_model
@@ -12,6 +13,7 @@ class Pegawai extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
+        $this->load->database();
     $this->load->model('User_model');
         $this->load->model('Jasa_bonus_model');
         $this->load->model('Tanda_tangan_model');
@@ -281,18 +283,52 @@ class Pegawai extends CI_Controller {
             'phone' => trim($this->input->post('phone')),
             'ruangan' => trim($this->input->post('ruangan')),
             'no_rekening' => trim($this->input->post('no_rekening')),
+            'asn' => trim($this->input->post('asn')),
+            'status_ptkp' => trim($this->input->post('status_ptkp')),
+            'golongan' => trim($this->input->post('golongan')),
         );
-        // Validasi sederhana
-        if ($data['username'] === '') { $this->session->set_flashdata('error', 'Username tidak boleh kosong.'); redirect('pegawai/profil'); return; }
-        if ($this->User_model->username_exists($data['username'], $user_id)) {
-            $this->session->set_flashdata('error', 'Username sudah digunakan.'); redirect('pegawai/profil'); return;
+        // Validasi & penanganan username: jika kosong, jangan ubah; jika diisi & berubah, cek unik
+        if ($data['username'] === '' || $data['username'] === null) {
+            unset($data['username']);
+        } else {
+            if ($data['username'] !== $me->username && $this->User_model->username_exists($data['username'], $user_id)) {
+                $this->session->set_flashdata('error', 'Username sudah digunakan.'); redirect('pegawai/profil'); return;
+            }
+        }
+        // Normalisasi field opsional: kosong -> NULL agar lebih bersih di DB
+        foreach (['phone','ruangan','no_rekening','status_ptkp','golongan'] as $opt) { if (isset($data[$opt]) && $data[$opt] === '') { $data[$opt] = null; } }
+        // Normalisasi ASN ke 'Ya'/'Tidak'
+        if (isset($data['asn'])) {
+            // Normalisasi input agar case-insensitive
+            $asn = strtolower(trim((string)$data['asn']));
+
+            // Daftar pilihan yang diperbolehkan
+            $allowed = [
+                'pns'            => 'PNS',
+                'pppk'           => 'PPPK',
+                'honorer'        => 'Honorer',
+                'pegawai kontrak'=> 'Pegawai Kontrak'
+            ];
+
+            if (isset($allowed[$asn])) {
+                // Ubah ke format yang benar (title case)
+                $data['asn'] = $allowed[$asn];
+            } else {
+                // Jika tidak cocok, tetap gunakan nilai lama
+                $data['asn'] = $me->asn;
+            }
         }
         // NIK tidak diizinkan diubah oleh pegawai untuk integritas
         // Simpan
         if ($this->User_model->update_user($user_id, $data)) {
             $this->session->set_flashdata('success', 'Profil berhasil diperbarui.');
         } else {
-            $this->session->set_flashdata('error', 'Gagal menyimpan profil.');
+            // Tambahkan detail error DB untuk membantu debug saat pengembangan
+            $err = $this->db->error();
+            $msg = 'Gagal menyimpan profil.';
+            if (!empty($err['code'])) { $msg .= ' ('.$err['code'].')'; }
+            if (!empty($err['message'])) { $msg .= ' - '.$err['message']; }
+            $this->session->set_flashdata('error', $msg);
         }
         redirect('pegawai/profil');
     }

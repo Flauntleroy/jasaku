@@ -167,14 +167,14 @@
       const options = {
         chart: { type: 'bar', height: 280, toolbar: { show: false }, animations: { enabled: true } },
         plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4 } },
-        colors: ['#10b981'],
+        colors: ['#1d2939'],
         dataLabels: { enabled: false },
         xaxis: { categories: cats },
         yaxis: { labels: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
         tooltip: { y: { formatter: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(v)) } },
-        series: [{ name: 'Netto', data: dataNetto }],
-        grid: { borderColor: 'rgba(107,114,128,0.2)' },
-        noData: { text: 'Tidak ada data', align: 'center', style: { color: '#6b7280' } }
+        series: [{ name: 'Bersih', data: dataNetto }],
+        grid: { borderColor: 'rgb(48,49,53)' },
+        noData: { text: 'Tidak ada data', align: 'center', style: { color: '#303135' } }
       };
       const chart = new ApexCharts(el, options);
       chart.render();

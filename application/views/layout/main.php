@@ -8,7 +8,11 @@
     />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title><?= isset($title) ? $title : 'Dashboard' ?> - Sistem Tanda Tangan Digital</title>
-    <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" />
+  <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" />
+  <link rel="manifest" href="<?= base_url('assets/manifest.webmanifest?v=1') ?>">
+  <meta name="theme-color" content="#475569" />
+  <link rel="apple-touch-icon" sizes="192x192" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
+  <link rel="apple-touch-icon" sizes="512x512" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
     <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet" />
   </head>
   <body

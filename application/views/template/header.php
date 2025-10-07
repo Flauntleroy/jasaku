@@ -7,9 +7,9 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title><?= isset($title) ? $title . ' | ' : '' ?>Jasa-Ku</title>
     <link rel="icon" type="image/png" href="<?= base_url('assets/images/logo/jasaku.png') ?>" />
-    <link rel="alternate icon" href="<?= base_url('tailadmin-free-tailwind-dashboard-template-main/build/favicon.ico') ?>" />
+    <link rel="alternate icon" href="<?= base_url('assets/css/favicon.ico') ?>" />
         <!-- TailAdmin Styles -->
-        <link rel="stylesheet" href="<?= base_url('tailadmin-free-tailwind-dashboard-template-main/build/style.css') ?>" />
+        <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>" />
     <style>[x-cloak]{display:none !important;}</style>
         <!-- Alpine.js for interactivity used by TailAdmin -->
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

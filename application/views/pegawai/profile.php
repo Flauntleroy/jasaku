@@ -29,11 +29,12 @@
         <div>
           <label class="mb-1 block text-sm text-gray-600">NIK</label>
           <input type="text" class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value="<?= html_escape($user->nik) ?>" disabled />
+          <p class="mb-1 block text-sm text-gray-600">*Hubungi admin untuk mengubah NIK</p>
         </div>
-        <div>
+        <!-- <div>
           <label class="mb-1 block text-sm text-gray-600">Username</label>
           <input name="username" type="text" class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value="<?= html_escape($user->username) ?>" disabled />
-        </div>
+        </div> -->
         <div>
           <label class="mb-1 block text-sm text-gray-600">Nama</label>
           <input name="nama" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->nama) ?>" />
@@ -50,8 +51,28 @@
           <label class="mb-1 block text-sm text-gray-600">No. Rekening</label>
           <input name="no_rekening" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->no_rekening) ?>" />
         </div>
+        <div>
+          <label class="mb-1 block text-sm text-gray-600">ASN</label>
+          <select name="asn" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900">
+          <?php 
+          $asnVal = $user->asn; 
+          ?>
+          <option value="PNS" <?= $asnVal==='PNS'?'selected':''; ?>>PNS</option>
+          <option value="PPPK" <?= $asnVal==='PPPK'?'selected':''; ?>>PPPK</option>
+          <option value="Honorer" <?= $asnVal==='Honorer'?'selected':''; ?>>Honorer</option>
+          <option value="Pegawai Kontrak" <?= $asnVal==='Pegawai Kontrak'?'selected':''; ?>>Pegawai Kontrak</option>
+        </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-gray-600">Status PTKP</label>
+          <input name="status_ptkp" type="text" placeholder="mis. TK/0, K/1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->status_ptkp) ?>" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-gray-600">Golongan</label>
+          <input name="golongan" type="text" placeholder="mis. III/a" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->golongan) ?>" />
+        </div>
         <div class="sm:col-span-2">
-          <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#2563eb;border-color:#2563eb;">Simpan Perubahan</button>
+          <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#1d2939;border-color:#1d2939;">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -73,7 +94,7 @@
           <input name="password_baru_konfirmasi" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" minlength="6" required />
         </div>
         <div>
-          <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#2563eb;border-color:#2563eb;">Simpan Password</button>
+          <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#1d2939;border-color:#1d2939;">Simpan Password</button>
         </div>
       </form>
     </div>

@@ -101,15 +101,16 @@
 
             <div class="rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-700">
               <style>
-                #sigWrap { width: 600px; }
-                @media (max-width: 640px) { #sigWrap { width: 340px; } }
-                #sigWrap.safe-area { position: relative; }
+                /* Gunakan lebar kontainer agar tidak offside */
+                #sigWrap { width: 100%; max-width: 640px; }
+                @media (max-width: 640px) { #sigWrap { width: 100%; max-width: 100%; } }
+                #sigWrap.safe-area { position: relative; overflow: hidden; }
                 #sigWrap.safe-area:after { content: ""; position: absolute; inset: 10px; border: 1px dashed rgba(0,0,0,.2); pointer-events: none; }
               </style>
               <div id="sigWrap" class="mx-auto safe-area">
                 <canvas id="sigCanvas" class="rounded bg-white shadow-sm dark:bg-gray-900" height="220"></canvas>
               </div>
-              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Tanda tangani di area putih. Gunakan mouse atau sentuhan.</p>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Tanda tangani di area putih.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -151,10 +152,17 @@
               if(!canvas) return;
               const ctx = canvas.getContext('2d');
               const DPR = window.devicePixelRatio || 1;
-              const ASPECT = 600/220;
               function resize() {
-                const cssWidth = (wrap && wrap.clientWidth) ? wrap.clientWidth : 600;
-                const cssHeight = Math.round(cssWidth / ASPECT);
+                let cssWidth = (wrap && wrap.clientWidth) ? wrap.clientWidth : 600;
+                cssWidth = Math.min(cssWidth || 600, 640); // jaga max width
+                // Buat sedikit lebih tinggi di mobile agar nyaman menulis
+                const isMobile = window.innerWidth < 640;
+                const aspect = 600/220; // basis aspek, lebar/tinggi
+                let cssHeight = Math.round(cssWidth / aspect);
+                if (isMobile) {
+                  const minH = 260; // tinggi minimum di mobile
+                  cssHeight = Math.max(cssHeight, minH);
+                }
                 canvas.width = Math.floor(cssWidth * DPR);
                 canvas.height = Math.floor(cssHeight * DPR);
                 canvas.style.width = cssWidth + 'px';
@@ -222,7 +230,8 @@
                 if (!drewSomething) { alert('Silakan tanda tangani terlebih dahulu.'); e.preventDefault(); return; }
                 if (!consent.checked) { alert('Anda harus menyetujui pernyataan.'); e.preventDefault(); return; }
                 try {
-                  const exportW = 600, exportH = 220;
+                  // Pertahankan resolusi ekspor agar hasil tetap konsisten
+                  const exportW = 800, exportH = 300;
                   const out = document.createElement('canvas'); out.width = exportW; out.height = exportH;
                   const octx = out.getContext('2d');
                   octx.fillStyle = '#ffffff'; octx.fillRect(0,0,exportW,exportH);
