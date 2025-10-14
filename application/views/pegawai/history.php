@@ -18,7 +18,7 @@
   <form method="get" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
     <div>
       <label class="mb-1 block text-xs text-gray-500">Tahun</label>
-      <select name="year" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select name="year" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:text-white">
         <option value="">Semua Tahun</option>
         <?php if (!empty($years)) foreach ($years as $y): ?>
           <option value="<?= (int)$y->year ?>" <?= (!empty($selected_year) && (int)$selected_year===(int)$y->year)?'selected':'' ?>><?= (int)$y->year ?></option>
@@ -26,8 +26,8 @@
       </select>
     </div>
     <div>
-      <label class="mb-1 block text-xs text-gray-500">Status</label>
-      <select name="status" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <label class="mb-1 block text-xs text-gray-500 dark:text-white">Status</label>
+      <select name="status" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:text-white">
         <option value="">Semua Status</option>
         <option value="unsigned" <?= ($selected_status==='unsigned')?'selected':'' ?>>Belum TTD</option>
         <option value="signed" <?= ($selected_status==='signed')?'selected':'' ?>>Sudah TTD</option>
@@ -54,16 +54,16 @@
           <tr><td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">Tidak ada data.</td></tr>
         <?php else: foreach ($rows as $r): ?>
           <tr>
-            <td class="px-4 py-3 text-sm text-gray-800"><?= html_escape(date('F Y', strtotime($r->periode))) ?></td>
-            <td class="px-4 py-3 text-sm font-medium text-gray-900">Rp <?= number_format($r->terima_setelah_pajak, 0, ',', '.') ?></td>
+            <td class="px-4 py-3 text-sm text-gray-800 dark:text-white"><?= html_escape(date('F Y', strtotime($r->periode))) ?></td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Rp <?= number_format($r->terima_setelah_pajak, 0, ',', '.') ?></td>
             <td class="px-4 py-3 text-sm">
               <?php if (!empty($r->ttd_id)): ?>
-                <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">Sudah TTD</span>
+                <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/10 dark:text-white">Sudah TTD</span>
               <?php else: ?>
-                <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-600">Belum TTD</span>
+                <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-600 dark:bg-amber-500/10 dark:text-white">Belum TTD</span>
               <?php endif; ?>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-700"><?= !empty($r->signed_at) ? html_escape($r->signed_at) : '-' ?></td>
+            <td class="px-4 py-3 text-sm text-gray-700 dark:text-white"><?= !empty($r->signed_at) ? html_escape($r->signed_at) : '-' ?></td>
             <td class="px-4 py-3 text-sm">
               <?php if (!empty($r->ttd_id)): ?>
                 <a href="<?= base_url('pegawai/dashboard') ?>" class="text-primary" style="color:#2563eb">Lihat</a>

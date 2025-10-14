@@ -17,7 +17,7 @@
 </div>
 
 <?php if (empty($unsigned_list)): ?>
-  <div class="rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+  <div class="rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-white">
     Tidak ada dokumen yang menunggu tanda tangan saat ini.
   </div>
 <?php else: ?>

@@ -30,19 +30,19 @@
               <h3 class="text-lg font-semibold">Ada dokumen yang perlu ditandatangani</h3>
               <p class="mt-1 text-sm">Anda memiliki <?= count($unsigned_list) ?> dokumen belum TTD pada tahun <?= date('Y') ?>.</p>
             </div>
-            <a href="<?= base_url('pegawai/tanda-tangan') ?>" class="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-transparent dark:text-emerald-300">BUKA</a>
+            <a href="<?= base_url('pegawai/tanda-tangan') ?>" class="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-transparent dark:text-white">BUKA</a>
           </div>
         </div>
       </div>
     <?php else: ?>
       <div class="col-span-12">
-        <div class="rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-800 shadow-sm dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+        <div class="rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-800 shadow-sm dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-white">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <h3 class="text-lg font-semibold">Tidak ada dokumen yang menunggu tanda tangan</h3>
-              <p class="mt-1 text-sm">Semua dokumen tahun ini sudah ditandatangani. Terima kasih!</p>
+              <h3 class="text-lg font-semibold dark:text-white">Tidak ada dokumen yang menunggu tanda tangan</h3>
+              <p class="mt-1 text-sm dark:text-white">Semua dokumen tahun ini sudah ditandatangani. Terima kasih!</p>
             </div>
-            <a href="<?= base_url('pegawai/history') ?>" class="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-transparent dark:text-emerald-300">Lihat Riwayat</a>
+            <a href="<?= base_url('pegawai/history') ?>" class="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-transparent dark:text-white">Lihat Riwayat</a>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Rata-rata Jasa Diterima  <?= date('Y') ?></p>
-        <h4 class="mt-2 text-title-sm font-bold text-emerald-600 dark:text-emerald-400">Rp <?= number_format($ytd_avg ?? 0, 0, ',', '.') ?></h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">Rp <?= number_format($ytd_avg ?? 0, 0, ',', '.') ?></h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Persentase TTD  <?= date('Y') ?></p>
@@ -83,7 +83,7 @@
           </div>
           <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-400">Terima Setelah Pajak</p>
-            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-emerald-400">Rp <?= number_format($current_jasa->terima_setelah_pajak, 0, ',', '.') ?></p>
+            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-white">Rp <?= number_format($current_jasa->terima_setelah_pajak, 0, ',', '.') ?></p>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@
         <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
             <thead class="bg-gray-50 dark:bg-white/[0.06]">
-              <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:bg-white/[0.03]">
                 <th class="px-4 py-2">Periode</th>
                 <th class="px-4 py-2">Nilai Bersih</th>
                 <th class="px-4 py-2">Status</th>
@@ -117,13 +117,13 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <?php if (!empty($history_preview)): foreach ($history_preview as $h): ?>
                 <tr>
-                  <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200"><?= html_escape(date('F Y', strtotime($h->periode))) ?></td>
+                  <td class="px-4 py-2 text-sm text-gray-800 dark:text-white"><?= html_escape(date('F Y', strtotime($h->periode))) ?></td>
                   <td class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">Rp <?= number_format($h->terima_setelah_pajak, 0, ',', '.') ?></td>
                   <td class="px-4 py-2 text-sm">
                     <?php if (!empty($h->ttd_id)): ?>
-                      <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">Sudah TTD</span>
+                      <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-white">Sudah TTD</span>
                     <?php else: ?>
-                      <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-600">Belum TTD</span>
+                      <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-600 dark:text-white">Belum TTD</span>
                     <?php endif; ?>
                   </td>
                 </tr>
