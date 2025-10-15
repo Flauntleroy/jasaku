@@ -33,7 +33,7 @@
           <!-- Optional search or actions -->
         </form>
       </div>
-      <span class="sm:hidden ml-auto text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[45vw] truncate">
+      <span class="sm:hidden ml-auto text-sm font-medium text-gray-700 dark:text-white max-w-[45vw] truncate ">
                 <?= html_escape($this->session->userdata('nama') ?? '') ?>
         </span>    
     </div>
