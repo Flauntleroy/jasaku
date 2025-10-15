@@ -42,11 +42,11 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead>
         <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <th class="px-4 py-3">#</th>
           <th class="px-4 py-3">Periode</th>
           <th class="px-4 py-3">Terima Setelah Pajak</th>
           <th class="px-4 py-3">Status</th>
           <th class="px-4 py-3">Tanggal TTD</th>
-          <th class="px-4 py-3">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -54,8 +54,18 @@
           <tr><td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">Tidak ada data.</td></tr>
         <?php else: foreach ($rows as $r): ?>
           <tr>
+            <td class="px-4 py-3 text-sm">
+              <?php if (!empty($r->ttd_id)): ?>
+                <a href="<?= base_url('pegawai/review-tanda-tangan/'.$r->id) ?>" class="rounded-lg bg-blue-dark px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700" style="background-color:#0345b0;border-color:#02317e;">Lihat</a>
+              <?php else: ?>
+                <a href="<?= base_url('pegawai/dashboard') ?>" class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">Tanda tangani</a>
+              <?php endif; ?>
+            </td>
             <td class="px-4 py-3 text-sm text-gray-800 dark:text-white"><?= html_escape(date('F Y', strtotime($r->periode))) ?></td>
-            <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Rp <?= number_format($r->terima_setelah_pajak, 0, ',', '.') ?></td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+              <span class="balance-value">Rp <?= number_format($r->terima_setelah_pajak, 0, ',', '.') ?></span>
+              <span class="balance-hidden hidden">Rp ••••••••</span>
+            </td>
             <td class="px-4 py-3 text-sm">
               <?php if (!empty($r->ttd_id)): ?>
                 <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/10 dark:text-white">Sudah TTD</span>
@@ -64,13 +74,7 @@
               <?php endif; ?>
             </td>
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-white"><?= !empty($r->signed_at) ? html_escape($r->signed_at) : '-' ?></td>
-            <td class="px-4 py-3 text-sm">
-              <?php if (!empty($r->ttd_id)): ?>
-                <a href="<?= base_url('pegawai/review-tanda-tangan/'.$r->id) ?>" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Lihat</a>
-              <?php else: ?>
-                <a href="<?= base_url('pegawai/dashboard') ?>" class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">Tanda tangani</a>
-              <?php endif; ?>
-            </td>
+            
           </tr>
         <?php endforeach; endif; ?>
       </tbody>

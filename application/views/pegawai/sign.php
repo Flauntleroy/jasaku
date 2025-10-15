@@ -42,7 +42,7 @@
                   <td class="px-4 py-2 text-sm text-gray-800 dark:text-white"><?= html_escape(date('F Y', strtotime($row->periode))) ?></td>
                   <td class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">Rp <?= number_format($row->terima_setelah_pajak, 0, ',', '.') ?></td>
                   <td class="px-4 py-2 text-right">
-                    <a href="<?= base_url('pegawai/tanda-tangan?id='.$row->id) ?>" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white" style="color:#2563eb">Pilih</a>
+                    <a href="<?= base_url('pegawai/tanda-tangan?id='.$row->id) ?>" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white" style="color:#02317e">Pilih</a>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -124,7 +124,7 @@
               </label>
               <button type="button" id="clearBtn" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5">Bersihkan</button>
               <button type="button" id="undoBtn" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5">Undo</button>
-              <button type="submit" id="submitBtn" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900" style="background-color:#2563eb;border-color:#2563eb;">
+              <button type="submit" id="submitBtn" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900" style="background-color:#02317e;border-color:#02317e;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4"><path d="M17 8a1 1 0 10-2 0v5a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h5a1 1 0 100-2H7a4 4 0 00-4 4v6a4 4 0 004 4h6a4 4 0 004-4V8z"/><path d="M9 11.586l6.293-6.293a1 1 0 111.414 1.414l-7 7a1 1 0 01-1.414 0l-3-3A1 1 0 115.707 9.293L9 12.586z"/></svg>
                 Simpan Tanda Tangan
               </button>

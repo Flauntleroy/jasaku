@@ -21,3 +21,6 @@
 <!-- Content Area End -->
 
 <?php $this->load->view('template/footer'); ?>
+
+<!-- Balance Toggle Script -->
+<script src="<?= base_url('assets/js/balance-toggle.js') ?>"></script>

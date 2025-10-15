@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
-        <a href="<?= site_url('pegawai/dashboard') ?>" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-lg transition duration-200 text-center" style="background-color:#0345b0;border-color:#2563eb;">
+        <a href="<?= site_url('pegawai/dashboard') ?>" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-lg transition duration-200 text-center" style="background-color:#0345b0;border-color:#02317e;">
             Selesai
         </a>
         <a href="<?= site_url('pegawai/tanda-tangan-ulang/' . $jasa->id) ?>" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200 text-center">
