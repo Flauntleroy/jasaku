@@ -222,11 +222,67 @@ class Pegawai extends CI_Controller {
 
         if ($this->Tanda_tangan_model->create_tanda_tangan($data_insert)) {
             $this->session->set_flashdata('success', 'Tanda tangan berhasil disimpan.');
+            // Redirect ke halaman review tanda tangan
+            redirect('pegawai/review-tanda-tangan/' . $jasa_bonus_id);
         } else {
             $this->session->set_flashdata('error', 'Gagal menyimpan tanda tangan ke database.');
+            redirect('pegawai/tanda-tangan');
         }
-
-        redirect('pegawai/tanda-tangan');
+    }
+    
+    /** Halaman review tanda tangan */
+    public function review_tanda_tangan($jasa_bonus_id = null) {
+        if (empty($jasa_bonus_id)) {
+            redirect('pegawai/dashboard');
+            return;
+        }
+        
+        $user_id = $this->session->userdata('user_id');
+        $me = $this->User_model->get_user_by_id($user_id);
+        
+        // Ambil data jasa bonus
+        $jasa = $this->Jasa_bonus_model->get_jasa_bonus_by_id($jasa_bonus_id);
+        if (!$jasa || !$me || $jasa->nik !== $me->nik) {
+            show_404();
+        }
+        
+        // Ambil data tanda tangan
+        $tanda_tangan = $this->Tanda_tangan_model->get_by_jasa_bonus_id($jasa_bonus_id);
+        if (!$tanda_tangan) {
+            $this->session->set_flashdata('error', 'Data tanda tangan tidak ditemukan.');
+            redirect('pegawai/dashboard');
+            return;
+        }
+        
+        $data['title'] = 'Review Tanda Tangan';
+        $data['page_title'] = 'Review Tanda Tangan';
+        $data['jasa'] = $jasa;
+        $data['tanda_tangan'] = $tanda_tangan;
+        $data['content'] = $this->load->view('pegawai/review_signature', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+    
+    /** Fungsi untuk tanda tangan ulang */
+    public function tanda_tangan_ulang($jasa_bonus_id = null) {
+        if (empty($jasa_bonus_id)) {
+            redirect('pegawai/dashboard');
+            return;
+        }
+        
+        $user_id = $this->session->userdata('user_id');
+        $me = $this->User_model->get_user_by_id($user_id);
+        
+        // Ambil data jasa bonus
+        $jasa = $this->Jasa_bonus_model->get_jasa_bonus_by_id($jasa_bonus_id);
+        if (!$jasa || !$me || $jasa->nik !== $me->nik) {
+            show_404();
+        }
+        
+        // Hapus tanda tangan lama
+        $this->Tanda_tangan_model->delete_by_jasa_bonus_id($jasa_bonus_id);
+        
+        // Redirect ke halaman tanda tangan dengan ID jasa bonus
+        redirect('pegawai/tanda-tangan?id=' . $jasa_bonus_id);
     }
 
     /** Halaman khusus untuk tanda tangan */

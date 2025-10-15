@@ -66,9 +66,9 @@
             <td class="px-4 py-3 text-sm text-gray-700 dark:text-white"><?= !empty($r->signed_at) ? html_escape($r->signed_at) : '-' ?></td>
             <td class="px-4 py-3 text-sm">
               <?php if (!empty($r->ttd_id)): ?>
-                <a href="<?= base_url('pegawai/dashboard') ?>" class="text-primary" style="color:#2563eb">Lihat</a>
+                <a href="<?= base_url('pegawai/review-tanda-tangan/'.$r->id) ?>" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Lihat</a>
               <?php else: ?>
-                <a href="<?= base_url('pegawai/dashboard') ?>" class="text-primary" style="color:#2563eb">Tanda tangani</a>
+                <a href="<?= base_url('pegawai/dashboard') ?>" class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">Tanda tangani</a>
               <?php endif; ?>
             </td>
           </tr>

@@ -58,6 +58,12 @@ class Tanda_tangan_model extends CI_Model {
         $this->db->where('id', $id);
         return $this->db->delete('tanda_tangan');
     }
+    
+    // Delete tanda tangan by jasa_bonus_id
+    public function delete_by_jasa_bonus_id($jasa_bonus_id) {
+        $this->db->where('jasa_bonus_id', $jasa_bonus_id);
+        return $this->db->delete('tanda_tangan');
+    }
 
     // Get tanda tangan by ID
     public function get_by_id($id) {

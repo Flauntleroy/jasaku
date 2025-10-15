@@ -39,10 +39,10 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <?php foreach ($unsigned_list as $row): ?>
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                  <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200"><?= html_escape(date('F Y', strtotime($row->periode))) ?></td>
+                  <td class="px-4 py-2 text-sm text-gray-800 dark:text-white"><?= html_escape(date('F Y', strtotime($row->periode))) ?></td>
                   <td class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">Rp <?= number_format($row->terima_setelah_pajak, 0, ',', '.') ?></td>
                   <td class="px-4 py-2 text-right">
-                    <a href="<?= base_url('pegawai/tanda-tangan?id='.$row->id) ?>" class="text-sm font-medium text-primary-600" style="color:#2563eb">Pilih</a>
+                    <a href="<?= base_url('pegawai/tanda-tangan?id='.$row->id) ?>" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white" style="color:#2563eb">Pilih</a>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -87,7 +87,7 @@
             </div>
             <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
               <p class="text-xs text-gray-500">Terima Bersih</p>
-              <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Rp <?= number_format($current_jasa->terima_setelah_pajak ?? 0, 0, ',', '.') ?></p>
+              <p class="text-sm font-medium text-emerald-700 dark:text-white">Rp <?= number_format($current_jasa->terima_setelah_pajak ?? 0, 0, ',', '.') ?></p>
             </div>
           </div>
         <?php endif; ?>
