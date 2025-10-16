@@ -7,11 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleText = document.getElementById('toggleText');
     
     // Check if balance visibility state is stored in localStorage
-    const isBalanceHidden = localStorage.getItem('balanceHidden') === 'true';
+    // Default to hidden if not set (first time login)
+    const isBalanceHidden = localStorage.getItem('balanceHidden') !== 'false';
     
-    // Set initial state based on localStorage or default to visible
+    // Set initial state based on localStorage or default to hidden
     if (isBalanceHidden) {
         hideBalance();
+    } else {
+        showBalance();
     }
     
     // Toggle balance visibility when button is clicked

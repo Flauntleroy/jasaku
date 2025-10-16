@@ -65,18 +65,18 @@
     <div class="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Total Jasa <?= date('Y') ?></p>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value">Rp <?= number_format($ytd_netto ?? 0, 0, ',', '.') ?></h4>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden hidden">Rp -------</</h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value hidden">Rp <?= number_format($ytd_netto ?? 0, 0, ',', '.') ?></h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden">Rp -------</</h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Total Potongan Pajak  <?= date('Y') ?></p>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value">Rp <?= number_format($ytd_pajak ?? 0, 0, ',', '.') ?></h4>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden hidden">Rp -------</</h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value hidden">Rp <?= number_format($ytd_pajak ?? 0, 0, ',', '.') ?></h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden">Rp -------</</h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Rata-rata Jasa Diterima  <?= date('Y') ?></p>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value">Rp <?= number_format($ytd_avg ?? 0, 0, ',', '.') ?></h4>
-        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden hidden">Rp -------</</h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-value hidden">Rp <?= number_format($ytd_avg ?? 0, 0, ',', '.') ?></h4>
+        <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90 balance-hidden">Rp -------</</h4>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="text-sm text-gray-500 dark:text-gray-400">Persentase TTD  <?= date('Y') ?></p>
@@ -95,13 +95,13 @@
         <div class="mt-6 grid grid-cols-2 gap-4">
           <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-400">Terima Sebelum Pajak</p>
-            <p class="mt-1 text-xl font-semibold text-gray-800 dark:text-white balance-value">Rp <?= number_format($current_jasa->terima_sebelum_pajak, 0, ',', '.') ?></p>
-            <p class="mt-1 text-xl font-semibold text-gray-800 dark:text-white balance-hidden hidden">Rp -------</p>
+            <p class="mt-1 text-xl font-semibold text-gray-800 dark:text-white balance-value hidden">Rp <?= number_format($current_jasa->terima_sebelum_pajak, 0, ',', '.') ?></p>
+            <p class="mt-1 text-xl font-semibold text-gray-800 dark:text-white balance-hidden">Rp -------</p>
           </div>
           <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-400">Terima Setelah Pajak</p>
-            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-white balance-value">Rp <?= number_format($current_jasa->terima_setelah_pajak, 0, ',', '.') ?></p>
-            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-white balance-hidden hidden">Rp -------</</p>
+            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-white balance-value hidden">Rp <?= number_format($current_jasa->terima_setelah_pajak, 0, ',', '.') ?></p>
+            <p class="mt-1 text-xl font-semibold text-emerald-600 dark:text-white balance-hidden">Rp -------</</p>
           </div>
         </div>
       </div>
