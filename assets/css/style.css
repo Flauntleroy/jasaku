@@ -1444,9 +1444,13 @@ svg{-ms-touch-action:none;touch-action:none}image,text,.jvm-zoomin,.jvm-zoomout{
   .bg-blue-500\/\[0\.08\] {
     background-color: color-mix(in oklab, var(--color-blue-500) 8%, transparent);
   }
+  .bg-blue-dark {
+    background-color: var(--color-blue-dark-500);
+  }
   .bg-blue-light-50 {
     background-color: var(--color-blue-light-50);
   }
+
   .bg-blue-light-500 {
     background-color: var(--color-blue-light-500);
   }

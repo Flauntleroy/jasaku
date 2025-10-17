@@ -27,33 +27,33 @@
       <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Informasi Profil</h3>
       <form method="post" action="<?= base_url('pegawai/profil/simpan') ?>" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label class="mb-1 block text-sm text-gray-600">NIK</label>
-          <input type="text" class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value="<?= html_escape($user->nik) ?>" disabled />
-          <p class="mb-1 block text-sm text-gray-600">*Hubungi admin untuk mengubah NIK</p>
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">NIK</label>
+          <input type="text" class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" value="<?= html_escape($user->nik) ?>" disabled />
+          <p class="mb-1 block text-sm text-gray-600 dark:text-white/90">*Hubungi admin untuk mengubah NIK</p>
         </div>
         <!-- <div>
-          <label class="mb-1 block text-sm text-gray-600">Username</label>
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">Username</label>
           <input name="username" type="text" class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value="<?= html_escape($user->username) ?>" disabled />
         </div> -->
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Nama</label>
-          <input name="nama" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->nama) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">Nama</label>
+          <input name="nama" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->nama) ?>" />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Ruangan</label>
-          <input name="ruangan" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->ruangan) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">Ruangan</label>
+          <input name="ruangan" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->ruangan) ?>" />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">No. HP</label>
-          <input name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->phone) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">No. HP</label>
+          <input name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->phone) ?>" />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">No. Rekening</label>
-          <input name="no_rekening" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->no_rekening) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">No. Rekening</label>
+          <input name="no_rekening" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->no_rekening) ?>" />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">ASN</label>
-          <select name="asn" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900">
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">ASN</label>
+          <select name="asn" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
           <?php 
           $asnVal = $user->asn; 
           ?>
@@ -64,12 +64,12 @@
         </select>
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Status PTKP</label>
-          <input name="status_ptkp" type="text" placeholder="mis. TK/0, K/1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->status_ptkp) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">Status PTKP</label>
+          <input name="status_ptkp" type="text" placeholder="mis. TK/0, K/1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->status_ptkp) ?>" />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Golongan</label>
-          <input name="golongan" type="text" placeholder="mis. III/a" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" value="<?= html_escape($user->golongan) ?>" />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white/90">Golongan</label>
+          <input name="golongan" type="text" placeholder="mis. III/a" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" value="<?= html_escape($user->golongan) ?>" />
         </div>
         <div class="sm:col-span-2">
           <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#1d2939;border-color:#1d2939;">Simpan Perubahan</button>
@@ -82,16 +82,16 @@
       <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Ubah Password</h3>
       <form method="post" action="<?= base_url('pegawai/profil/ubah-password') ?>" class="grid grid-cols-1 gap-4">
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Password Lama</label>
-          <input name="password_lama" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" required />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white">Password Lama</label>
+          <input name="password_lama" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" required />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Password Baru</label>
-          <input name="password_baru" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" minlength="6" required />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white">Password Baru</label>
+          <input name="password_baru" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" minlength="6" required />
         </div>
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Konfirmasi Password Baru</label>
-          <input name="password_baru_konfirmasi" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" minlength="6" required />
+          <label class="mb-1 block text-sm text-gray-600 dark:text-white">Konfirmasi Password Baru</label>
+          <input name="password_baru_konfirmasi" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" minlength="6" required />
         </div>
         <div>
           <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 border border-primary" style="background-color:#1d2939;border-color:#1d2939;">Simpan Password</button>
