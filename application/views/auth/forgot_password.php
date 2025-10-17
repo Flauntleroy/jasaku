@@ -158,7 +158,7 @@
               Lupa Password
             </h1>
             <p class="text-gray-500 dark:text-gray-400">
-              Reset password akun Anda dengan mudah
+              Reset password akun Anda
             </p>
           </div>
 

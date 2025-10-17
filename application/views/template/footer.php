@@ -5,7 +5,7 @@
 		<!-- DataTables Scripts -->
 		<script>
   $(document).ready(function() {
-      $('#antrolTable2').DataTable({
+      $('#dataTables').DataTable({
           dom: 'Bfrtip',
           buttons: [
               {
@@ -33,7 +33,7 @@
               search: "",
               searchPlaceholder: "Search..."
           },
-          pageLength: 10,
+          pageLength: 100,
           ordering: true,
           responsive: true
       });

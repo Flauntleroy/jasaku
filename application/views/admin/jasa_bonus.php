@@ -53,7 +53,7 @@
 
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
   <div class="w-full overflow-x-auto">
-    <table class="min-w-full">
+    <table id="dataTables" class="min-w-full">
       <thead>
         <tr class="border-y border-gray-100 dark:border-gray-800">
           <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Pegawai</th>
