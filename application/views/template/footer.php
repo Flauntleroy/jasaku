@@ -33,7 +33,7 @@
               search: "",
               searchPlaceholder: "Search..."
           },
-          pageLength: 10,
+          pageLength: 100,
           ordering: true,
           responsive: true
       });
