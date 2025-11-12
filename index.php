@@ -91,6 +91,54 @@ switch (ENVIRONMENT)
 
 /*
  *---------------------------------------------------------------
+ * MAINTENANCE MODE (file-flag + countdown)
+ *---------------------------------------------------------------
+ * Jika file "maintenance.flag" ada di root project, baca opsional JSON
+ * berisi end_at (UNIX timestamp). Bila sudah lewat, hapus flag dan lanjutkan.
+ * Bila belum lewat, tampilkan halaman maintenance dan set Retry-After dinamis.
+ */
+{
+    $flagPath = __DIR__ . DIRECTORY_SEPARATOR . 'maintenance.flag';
+    if (file_exists($flagPath)) {
+        $endAt = null; $reason = null;
+        $raw = @file_get_contents($flagPath);
+        if ($raw !== false) {
+            $data = json_decode($raw, true);
+            if (is_array($data)) {
+                if (isset($data['end_at'])) { $endAt = (int)$data['end_at']; }
+                if (isset($data['reason'])) { $reason = (string)$data['reason']; }
+            }
+        }
+        $now = time();
+        if (!empty($endAt) && $now >= $endAt) {
+            // Countdown selesai: hapus flag, lanjutkan boot CI
+            @unlink($flagPath);
+        } else {
+            // Izinkan akses ke panel admin saat maintenance aktif
+            $uriPath = '';
+            if (isset($_SERVER['REQUEST_URI'])) {
+                $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '';
+            }
+            $isCli = (PHP_SAPI === 'cli');
+            $isAdminPath = (bool)preg_match('#(?:^|/)(index\.php/)?admin(?:/|$)#i', $uriPath);
+            $isMaintLoginPath = (bool)preg_match('#(?:^|/)(index\.php/)?auth/(login\-maint|login_maintenance)(?:/|$)#i', $uriPath);
+
+            if (!$isAdminPath && !$isMaintLoginPath && !$isCli) {
+                header('HTTP/1.1 503 Service Unavailable', true, 503);
+                $retry = 3600; if (!empty($endAt)) { $retry = max(0, $endAt - $now); }
+                header('Retry-After: ' . $retry);
+                // Variabel untuk view maintenance
+                $maintenance_end_at = $endAt ?: null;
+                $maintenance_reason = $reason ?: null;
+                include __DIR__ . '/application/views/errors/maintenance.php';
+                exit(0);
+            }
+        }
+    }
+}
+
+/*
+ *---------------------------------------------------------------
  * SYSTEM DIRECTORY NAME
  *---------------------------------------------------------------
  *

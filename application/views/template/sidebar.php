@@ -46,6 +46,12 @@
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Laporan</span>
               </a>
             </li>
+            <li>
+              <a href="<?= base_url('admin/maintenance') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= uri_string()==='admin/maintenance'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
+                <svg class="h-5 w-5 text-gray-500 dark:text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M22 7l-9 9-4-4-6 6 2 2 6-6 4 4 11-11z"/></svg>
+                <span :class="sidebarToggle ? 'lg:hidden' : ''">Maintenance</span>
+              </a>
+            </li>
           <?php else: ?>
             <li>
               <a href="<?= base_url('pegawai/dashboard') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= uri_string()==='pegawai/dashboard'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">

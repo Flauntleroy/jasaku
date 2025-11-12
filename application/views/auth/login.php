@@ -186,7 +186,7 @@
           <?php endif; ?>
 
           <!-- Login Form -->
-          <form class="space-y-6" action="<?= base_url('auth/login') ?>" method="post">
+          <form class="space-y-6" action="<?= isset($maintenance_only) && $maintenance_only ? base_url('auth/login-maint') : base_url('auth/login') ?>" method="post">
             <!-- Username Field -->
             <div class="space-y-2">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300 block">

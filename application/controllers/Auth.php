@@ -90,6 +90,50 @@ class Auth extends CI_Controller {
         $this->load->view('auth/login', isset($data) ? $data : array());
     }
 
+    public function login_maintenance() {
+        if ($this->session->userdata('logged_in')) {
+            if ($this->session->userdata('role') === 'admin') {
+                redirect('admin/maintenance');
+                return;
+            }
+            $data['error'] = 'Selama maintenance, hanya admin yang dapat login.';
+            $this->load->view('auth/login', $data);
+            return;
+        }
+
+        if ($this->input->post()) {
+            $this->form_validation->set_rules('username', 'Username', 'required|trim');
+            $this->form_validation->set_rules('password', 'Password', 'required');
+
+            if ($this->form_validation->run() == FALSE) {
+                $data['error'] = validation_errors();
+            } else {
+                $username = $this->input->post('username', TRUE);
+                $password = $this->input->post('password', TRUE);
+
+                $user = $this->User_model->login($username, $password);
+
+                if ($user && isset($user->role) && $user->role === 'admin') {
+                    $session_data = array(
+                        'user_id' => $user->id,
+                        'username' => $user->username,
+                        'nama' => $user->nama,
+                        'role' => $user->role,
+                        'logged_in' => TRUE
+                    );
+                    $this->session->set_userdata($session_data);
+                    redirect('admin/maintenance');
+                    return;
+                } else {
+                    $data['error'] = 'Selama maintenance, hanya admin yang dapat login.';
+                }
+            }
+        }
+
+        $data['maintenance_only'] = true;
+        $this->load->view('auth/login', isset($data) ? $data : array());
+    }
+
     // Activation flow by WhatsApp phone + activation code -> set new password
     public function activate() {
         // If logged in already, just redirect

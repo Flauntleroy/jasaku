@@ -5,7 +5,7 @@
 		<!-- DataTables Scripts -->
 		<script>
   $(document).ready(function() {
-      $('#antrolTable2').DataTable({
+      $('#jasaTable').DataTable({
           dom: 'Bfrtip',
           buttons: [
               {

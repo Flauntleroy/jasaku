@@ -29,7 +29,16 @@ class Admin extends CI_Controller {
 
     private function check_admin_access() {
         if (!$this->session->userdata('logged_in')) {
-            redirect('auth/login');
+            $loginUrl = base_url('auth/login');
+            if (!headers_sent()) {
+                redirect('auth/login');
+                exit; // pastikan eksekusi berhenti setelah redirect
+            } else {
+                // Fallback bila header sudah terkirim: gunakan client-side redirect
+                echo '<script>location.replace("'.$loginUrl.'");</script>';
+                echo '<noscript><meta http-equiv="refresh" content="0;url='.$loginUrl.'"></noscript>';
+                exit;
+            }
         }
         
         if ($this->session->userdata('role') != 'admin') {
@@ -123,6 +132,52 @@ class Admin extends CI_Controller {
         
     $data['content'] = $this->load->view('admin/laporan', $data, TRUE);
     $this->load->view('template/main', $data);
+    }
+
+    /** Halaman dan aksi Mode Pemeliharaan (Maintenance) */
+    public function maintenance() {
+        $data['title'] = 'Maintenance';
+        $data['page_title'] = 'Mode Pemeliharaan';
+
+        $flagPath = FCPATH . 'maintenance.flag';
+        $data['is_active'] = file_exists($flagPath);
+        $data['maintenance'] = null;
+        $data['remaining_secs'] = null;
+
+        if ($this->input->post('action')) {
+            $action = $this->input->post('action');
+            if ($action === 'enable') {
+                $duration = (int)$this->input->post('duration_minutes');
+                if ($duration <= 0) { $duration = 30; }
+                $reason = $this->input->post('reason', TRUE);
+                $payload = array(
+                    'created_at' => time(),
+                    'end_at' => time() + ($duration * 60),
+                    'reason' => $reason,
+                    'enabled_by' => $this->session->userdata('username') ?: 'admin'
+                );
+                @file_put_contents($flagPath, json_encode($payload, JSON_PRETTY_PRINT));
+                $this->session->set_flashdata('success', 'Maintenance diaktifkan selama ' . $duration . ' menit.');
+                redirect('admin/maintenance');
+                return;
+            } elseif ($action === 'disable') {
+                if (file_exists($flagPath)) { @unlink($flagPath); }
+                $this->session->set_flashdata('success', 'Maintenance dinonaktifkan.');
+                redirect('admin/maintenance');
+                return;
+            }
+        }
+
+        if ($data['is_active']) {
+            $raw = @file_get_contents($flagPath);
+            $json = json_decode($raw, TRUE);
+            if (is_array($json)) { $data['maintenance'] = $json; }
+            $endAt = isset($json['end_at']) ? (int)$json['end_at'] : null;
+            if ($endAt) { $data['remaining_secs'] = max(0, $endAt - time()); }
+        }
+
+        $data['content'] = $this->load->view('admin/maintenance', $data, TRUE);
+        $this->load->view('template/main', $data);
     }
 
     private function handle_user_action() {
