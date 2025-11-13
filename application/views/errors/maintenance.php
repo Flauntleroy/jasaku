@@ -16,8 +16,8 @@
       --bg-card: #1a1f35;
       --text-primary: #ffffff;
       --text-secondary: #94a3b8;
-      --accent: #fbbf24;
-      --accent-glow: rgba(251, 191, 36, 0.2);
+      --accent: #24c9fbff;
+      --accent-glow: rgba(36, 226, 251, 0.2);
       --primary: #3b82f6;
       --primary-hover: #2563eb;
       --border: rgba(255, 255, 255, 0.1);
@@ -111,8 +111,8 @@
       align-items: center;
       gap: 8px;
       padding: 10px 18px;
-      background: rgba(251, 191, 36, 0.15);
-      border: 2px solid rgba(251, 191, 36, 0.3);
+      background: rgba(51, 113, 184, 0.15);
+      border: 2px solid rgba(41, 116, 202, 0.3);
       border-radius: 100px;
       color: var(--accent);
       font-size: 14px;
@@ -309,6 +309,10 @@
   <div class="container">
     <div class="card">
       <div class="header">
+        <h1 class="title">Penginputan Data Sedang Dalam Proses</h1>
+        <p class="description">
+          Akses sistem untuk sementara dinonaktifkan hingga proses selesai.
+        </p>
         <div class="icon-wrapper">
           <dotlottie-wc 
             src="https://lottie.host/470cdbcf-1a4f-4634-8c2a-075be510990b/32kQlgYr13.lottie" 
@@ -317,22 +321,10 @@
             loop>
           </dotlottie-wc>
         </div>
-        <h1 class="title">Situs Sedang Dalam Perawatan</h1>
-        <p class="description">
-          Kami sedang melakukan pemeliharaan untuk meningkatkan performa dan keamanan sistem. 
-          Terima kasih atas kesabaran Anda.
-        </p>
+        
       </div>
 
-      <div style="text-align: center;">
-        <div class="badge">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5"/>
-            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Maintenance Mode Aktif
-        </div>
-      </div>
+      
 
       <div class="countdown">
         <div class="time-unit">
@@ -351,6 +343,7 @@
           <div class="time-label">Menit</div>
         </div>
         
+        
         <div class="separator">:</div>
         
         <div class="time-unit">
@@ -362,7 +355,17 @@
       </div>
 
       <div class="end-time" id="end-time">
-        Berakhir pada: <strong id="end-date"></strong>
+        <!-- Berakhir pada:  <strong id="end-date"></strong> -->
+      </div>
+
+      <div style="text-align: center;">
+        <div class="badge" class="end-time" id="end-time">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <strong id="end-date"></strong>
+        </div>
       </div>
 
       <!-- <div class="actions">
@@ -378,8 +381,9 @@
   </div>
 
   <script>
-    // Set countdown end time (2 hours from now)
-    const endTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    // Gunakan end_at dari server jika tersedia; fallback 30 menit
+    const serverEndAt = <?php echo isset($maintenance_end_at) ? (int)$maintenance_end_at : 'null'; ?>;
+    const endTime = serverEndAt ? new Date(serverEndAt * 1000) : new Date(Date.now() + 30 * 60 * 1000);
     
     // Display end time
     const options = { 
