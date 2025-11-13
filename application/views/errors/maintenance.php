@@ -24,6 +24,9 @@
     }
     html, body {
       height: 100%;
+      width: 100%;
+      overflow: hidden;          /* cegah scroll di mobile */
+      overscroll-behavior: none; /* hentikan overscroll bounce */
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -33,7 +36,6 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      overflow: hidden;
       position: relative;
     }
     body::before {
@@ -264,8 +266,8 @@
         gap: 12px;
       }
       .icon-wrapper {
-        width: 90px;
-        height: 90px;
+        width: 140px;
+        height: 140px;
       }
     }
     @media (max-width: 480px) {
@@ -311,7 +313,7 @@
       <div class="header">
         <h1 class="title">Penginputan Data Sedang Dalam Proses</h1>
         <p class="description">
-          Akses sistem untuk sementara dinonaktifkan hingga proses selesai.
+          Akses dinonaktifkan hingga proses selesai. 
         </p>
         <div class="icon-wrapper">
           <dotlottie-wc 
