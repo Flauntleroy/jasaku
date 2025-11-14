@@ -112,7 +112,7 @@
 
 <!-- Create Modal -->
 <div x-show="openCreateUser" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-20 sm:pt-4">
-  <div @click.outside="openCreateUser = false" class="w-full max-w-lg max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl bg-white p-6 dark:bg-gray-900">
+  <div @click.outside="openCreateUser = false" class="max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl bg-gray-100 p-6 dark:bg-gray-900">
     <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Tambah Pegawai</h3>
     <form method="post" class="space-y-4">
       <input type="hidden" name="action" value="create" />
