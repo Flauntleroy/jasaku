@@ -13,7 +13,7 @@
         
         <!-- DataTables CSS -->
         <link href="https://cdn.datatables.net/v/dt/jq-3.7.0/jszip-3.10.1/dt-2.3.4/af-2.7.1/b-3.2.5/b-colvis-3.2.5/b-html5-3.2.5/b-print-3.2.5/cr-2.1.1/cc-1.1.0/date-1.6.0/fc-5.0.5/fh-4.0.4/kt-2.12.1/r-3.0.7/rg-1.6.0/rr-1.5.0/sc-2.4.3/sb-1.8.4/sp-2.3.5/sl-3.1.2/sr-1.4.2/datatables.min.css" rel="stylesheet">
-    <style>[x-cloak]{display:none !important;}</style>
+        <style>[x-cloak]{display:none !important;}</style>
  
         <!-- PDF Make -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js" integrity="sha384-VFQrHzqBh5qiJIU0uGU5CIW3+OWpdGGJM9LBnGbuIH2mkICcFZ7lPd/AAtI7SNf7" crossorigin="anonymous"></script>

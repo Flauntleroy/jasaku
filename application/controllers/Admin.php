@@ -56,6 +56,19 @@ class Admin extends CI_Controller {
         $data['monthly'] = $this->Jasa_bonus_model->get_monthly_sums(12);
         $data['signed_percent'] = $this->Jasa_bonus_model->get_signed_percentage();
         
+        // Filter bulan untuk statistik Belum TTD (opsional)
+        $unsigned_month = $this->input->get('unsigned_month'); // format YYYY-MM
+        if (empty($unsigned_month)) { $unsigned_month = date('Y-m'); }
+        $monthStart = $unsigned_month . '-01';
+        $monthEnd = date('Y-m-t', strtotime($monthStart));
+        $data['unsigned_month'] = $unsigned_month;
+        $data['unsigned_month_label'] = date('M Y', strtotime($monthStart));
+        $data['unsigned_count'] = $this->Jasa_bonus_model->count_unsigned_by_period($monthStart, $monthEnd);
+        $data['unsigned_month_total'] = $this->Jasa_bonus_model->count_total_by_period($monthStart, $monthEnd);
+        $data['unsigned_month_signed'] = $this->Jasa_bonus_model->count_signed_by_period($monthStart, $monthEnd);
+
+        // Panel Top Pegawai tidak digunakan; baris dihapus untuk menghindari query tambahan
+
         // Get recent jasa bonus
         $data['recent_jasa'] = array_slice($this->Jasa_bonus_model->get_jasa_bonus_with_signature(), 0, 5);
         

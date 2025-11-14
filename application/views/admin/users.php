@@ -111,8 +111,8 @@
 </div>
 
 <!-- Create Modal -->
-<div x-show="openCreateUser" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-  <div @click.outside="openCreateUser = false" class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-900">
+<div x-show="openCreateUser" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-20 sm:pt-4">
+  <div @click.outside="openCreateUser = false" class="w-full max-w-lg max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl bg-white p-6 dark:bg-gray-900">
     <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Tambah Pegawai</h3>
     <form method="post" class="space-y-4">
       <input type="hidden" name="action" value="create" />
@@ -171,7 +171,7 @@
       <form method="post" enctype="multipart/form-data" class="space-y-3">
         <input type="hidden" name="action" value="import_csv" />
         <input type="file" name="csv_file" accept=".csv" class="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200 dark:text-gray-300 dark:file:bg-gray-800 dark:hover:file:bg-gray-700" required />
-  <p class="text-xs text-gray-500">Header: nik,nama,ruangan,asn,status_ptkp,golongan,username,phone (opsional). User dibuat non-aktif dengan kode aktivasi.</p>
+        <p class="text-xs text-gray-500">Header: nik,nama,ruangan,asn,status_ptkp,golongan,username,phone (opsional). User dibuat non-aktif dengan kode aktivasi.</p>
         <div class="flex justify-end">
           <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Import</button>
         </div>

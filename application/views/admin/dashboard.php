@@ -5,7 +5,7 @@
       Dashboard Admin
     </h2>
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-      Selamat datang, <?= $this->session->userdata('nama') ?>! Kelola sistem tanda tangan digital dengan mudah.
+      Selamat datang, <?= $this->session->userdata('nama') ?>.
     </p>
   </div>
   <nav aria-label="Breadcrumb">
@@ -22,47 +22,56 @@
   <div class="col-span-12 space-y-6 xl:col-span-7">
     <!-- Metric Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
-            <!-- Metric Item: Total Jasa/Bonus -->
+            <!-- Metric Item: Total Setelah Pajak -->
             <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
               <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
                 <svg class="fill-gray-800 dark:fill-white/90" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Z"/></svg>
               </div>
               <div class="mt-5 flex items-end justify-between">
                 <div>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">Total Jasa/Bonus</span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">Total Jasa</span>
                   <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
-                    <?= isset($stats['total_jasa']) ? number_format($stats['total_jasa']) : '0' ?>
+                    Rp <?= number_format((float)($stats['sum_netto'] ?? 0), 0, ',', '.') ?>
                   </h4>
                 </div>
               </div>
             </div>
 
-            <!-- Metric Item: Sudah Ditandatangani -->
+            <!-- Metric Item: Total Pajak -->
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
+                <svg class="fill-gray-800 dark:fill-white/90" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16v2H4zm0 4h12v2H4zm0 4h16v2H4zm0 4h12v2H4z"/></svg>
+              </div>
+              <div class="mt-5 flex items-end justify-between">
+                <div>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">Total Pajak</span>
+                  <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
+                    Rp <?= number_format((float)($stats['sum_pajak'] ?? 0), 0, ',', '.') ?>
+                  </h4>
+                </div>
+              </div>
+            </div>
+
+            <!-- Metric Item: Status TTD (Sudah/Belum) -->
             <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
               <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
                 <svg class="fill-gray-800 dark:fill-white/90" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
               </div>
-              <div class="mt-5 flex items-end justify-between">
-                <div>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">Sudah Ditandatangani</span>
-                  <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
-                    <?= isset($stats['total_signed']) ? number_format($stats['total_signed']) : '0' ?>
-                  </h4>
-                </div>
-              </div>
-            </div>
-
-            <!-- Metric Item: Belum Ditandatangani -->
-            <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
-                <svg class="fill-gray-800 dark:fill-white/90" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 5v6h-2V7h2Zm0 8v2h-2v-2h2Z"/></svg>
-              </div>
-              <div class="mt-5 flex items-end justify-between">
-                <div>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">Belum Ditandatangani</span>
-                  <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
-                    <?= isset($stats['total_unsigned']) ? number_format($stats['total_unsigned']) : '0' ?>
-                  </h4>
+              <div class="mt-5">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Status TTD</span>
+                <div class="mt-3 flex items-center justify-between gap-6">
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Sudah</span>
+                    <span class="text-title-sm font-bold text-gray-800 dark:text-white/90">
+                      <?= isset($stats['total_signed']) ? number_format($stats['total_signed']) : '0' ?>
+                    </span>
+                  </div>
+                  <div class="flex items-baseline gap-2 border-l border-gray-200 pl-6 dark:border-gray-700">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Belum</span>
+                    <span class="text-title-sm font-bold text-gray-800 dark:text-white/90">
+                      <?= isset($stats['total_unsigned']) ? number_format($stats['total_unsigned']) : '0' ?>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -83,10 +92,10 @@
             </div>
     </div>
 
-    <!-- Chart: Bruto vs Netto per Bulan -->
+    <!-- Chart: Sebelum Pajak vs Setelah Pajak per Bulan -->
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Bruto vs Netto per Bulan</h3>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Total Jasa</h3>
       </div>
       <div class="custom-scrollbar max-w-full overflow-x-auto">
         <div class="-ml-5 min-w-[650px] pl-2 xl:min-w-full">
@@ -94,16 +103,61 @@
         </div>
       </div>
     </div>
+
+    
+
   </div>
 
   <div class="col-span-12 xl:col-span-5">
+    <!-- Statistik: Belum TTD per Bulan -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6 mb-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Total Belum TTD per Bulan</h3>
+          <!-- <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Pilih bulan periode saja</p> -->
+        </div>
+      </div>
+      <form method="get" action="<?= base_url('admin/dashboard') ?>" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div>
+          <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Bulan</label>
+          <input type="month" name="unsigned_month" value="<?= html_escape($unsigned_month ?? date('Y-m')) ?>" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" />
+        </div>
+        <div class="flex items-end gap-2 sm:col-span-2">
+          <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-gray-100 hover:bg-blue-700 dark:text-white/90">Apply</button>
+          <a href="<?= base_url('admin/dashboard') ?>" class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Reset</a>
+        </div>
+      </form>
+      <div class="mt-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Total Belum TTD</span>
+            <h4 class="mt-1 text-3xl font-bold text-gray-800 dark:text-white/90">
+              <?= number_format((int)($unsigned_count ?? 0)) ?>
+            </h4>
+          </div>
+          <div class="text-right text-xs text-gray-500 dark:text-gray-400">
+            <div>Bulan: <?= html_escape($unsigned_month_label ?? '') ?></div>
+          </div>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total Dokumen</div>
+            <div class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_month_total ?? 0)) ?></div>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
+            <div class="text-xs text-gray-500 dark:text-gray-400">Sudah TTD</div>
+            <div class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_month_signed ?? 0)) ?></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Chart: Persentase TTD -->
     <div class="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="shadow-default rounded-2xl bg-white px-5 pb-11 pt-5 dark:bg-gray-900 sm:px-6 sm:pt-6">
         <div class="flex justify-between">
           <div>
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Persentase TTD</h3>
-            <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Dokumen bertanda tangan / total</p>
+            <!-- <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Dokumen bertanda tangan / total</p> -->
           </div>
         </div>
         <div class="relative max-h-[195px]"><div id="chartSigned" class="h-full"></div></div>
@@ -112,38 +166,25 @@
   </div>
 
   <div class="col-span-12">
-    <!-- Chart: Trend Netto -->
+    <!-- Chart: Trend Setelah Pajak -->
     <div class="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div class="mb-6 flex flex-col gap-5 sm:flex-row sm:justify-between">
         <div class="w-full">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Trend Netto</h3>
-          <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Perkembangan terima setelah pajak</p>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Statistik Jasa Setelah Potongan Jasa</h3>
+          <!-- <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Perkembangan penerimaan setelah pajak</p> -->
         </div>
       </div>
       <div class="custom-scrollbar max-w-full overflow-x-auto"><div id="chartNetto" class="-ml-4 min-w-[700px] pl-2"></div></div>
     </div>
   </div>
 
-  <div class="col-span-12 xl:col-span-5">
-    <!-- Map One -->
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
-      <div class="flex justify-between">
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Customers Demographic</h3>
-          <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Based on country</p>
-        </div>
-      </div>
-      <div class="border-gary-200 my-6 overflow-hidden rounded-2xl border bg-gray-50 px-4 py-6 dark:border-gray-800 dark:bg-gray-900 sm:px-6">
-        <div id="mapOne" class="mapOne map-btn -mx-4 -my-6 h-[212px] w-[252px] 2xsm:w-[307px] xsm:w-[358px] sm:-mx-6 md:w-[668px] lg:w-[634px] xl:w-[393px] 2xl:w-[554px]"></div>
-      </div>
-    </div>
-  </div>
+  <!-- Section map demografik dihapus karena tidak relevan -->
 
   <div class="col-span-12 xl:col-span-7">
     <!-- Recent Items Table -->
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div><h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Recent Items</h3></div>
+        <div><h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Data Terbaru</h3></div>
       </div>
       <div class="w-full overflow-x-auto">
         <table class="min-w-full">
@@ -248,19 +289,19 @@
 <script>
   (function initDashboardCharts() {
     const init = function() {
-      // PHP-provided data
+      
       const categories = <?= json_encode($monthly['categories'] ?? []) ?>;
       const bruto = <?= json_encode($monthly['bruto'] ?? []) ?>;
       const netto = <?= json_encode($monthly['netto'] ?? []) ?>;
       const signedPercent = <?= json_encode($signed_percent ?? 0) ?>;
 
-      // Chart: Bruto vs Netto (columns)
+      
       const elMonthly = document.querySelector('#chartMonthly');
       if (elMonthly) {
         const options = {
           series: [
-            { name: 'Bruto', data: bruto },
-            { name: 'Netto', data: netto },
+            { name: 'Sebelum Pajak', data: bruto },
+            { name: 'Setelah Pajak', data: netto },
           ],
           colors: ['#9CB9FF', '#465FFF'],
           chart: { type: 'bar', height: 300, toolbar: { show: false }, stacked: false, fontFamily: 'Outfit, sans-serif' },
@@ -276,7 +317,7 @@
         const chart = new ApexCharts(elMonthly, options); chart.render();
       }
 
-      // Chart: Persentase TTD (semi-donut)
+      
       const elSigned = document.querySelector('#chartSigned');
       if (elSigned) {
         const options = {
@@ -289,11 +330,11 @@
         const chart = new ApexCharts(elSigned, options); chart.render();
       }
 
-      // Chart: Netto Trend (area)
+      
       const elNetto = document.querySelector('#chartNetto');
       if (elNetto) {
         const options = {
-          series: [{ name: 'Netto', data: netto }],
+          series: [{ name: 'Setelah Pajak', data: netto }],
           colors: ['#465FFF'],
           chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Outfit, sans-serif' },
           dataLabels: { enabled: false },
@@ -312,7 +353,7 @@
       if (typeof ApexCharts !== 'undefined') {
         init();
       } else {
-        // Load from CDN if not present in bundle
+        
         const s = document.createElement('script');
         s.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.54.1';
         s.onload = init;

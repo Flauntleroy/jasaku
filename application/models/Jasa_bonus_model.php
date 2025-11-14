@@ -171,6 +171,18 @@ class Jasa_bonus_model extends CI_Model {
         
         // Total pegawai
         $stats['total_pegawai'] = $this->db->count_all('users');
+
+        // Total setelah pajak (netto) untuk seluruh data
+        $this->db->select('SUM(terima_setelah_pajak) as sum_netto', false);
+        $this->db->from('jasa_bonus');
+        $row = $this->db->get()->row();
+        $stats['sum_netto'] = (float)($row->sum_netto ?? 0);
+
+        // Total pajak (gabungan pajak_5, pajak_15, pajak_0) untuk seluruh data
+        $this->db->select('SUM(COALESCE(pajak_5,0) + COALESCE(pajak_15,0) + COALESCE(pajak_0,0)) as sum_pajak', false);
+        $this->db->from('jasa_bonus');
+        $row = $this->db->get()->row();
+        $stats['sum_pajak'] = (float)($row->sum_pajak ?? 0);
         
         return $stats;
     }
@@ -232,6 +244,50 @@ class Jasa_bonus_model extends CI_Model {
         $this->db->select('jasa_bonus_id');
         $signed = (int)$this->db->count_all_results('tanda_tangan');
         return round(($signed / max(1, $total)) * 100, 2);
+    }
+
+    /**
+     * Count of jasa_bonus that are NOT signed within optional period range
+     * @param string|null $start_date format 'YYYY-MM-DD'
+     * @param string|null $end_date format 'YYYY-MM-DD'
+     * @return int
+     */
+    public function count_unsigned_by_period($start_date = null, $end_date = null) {
+        $this->db->select('COUNT(jb.id) as total', false);
+        $this->db->from('jasa_bonus jb');
+        $this->db->join('tanda_tangan tt', 'tt.jasa_bonus_id = jb.id', 'left');
+        if (!empty($start_date)) {
+            $this->db->where('jb.periode >=', $start_date);
+        }
+        if (!empty($end_date)) {
+            $this->db->where('jb.periode <=', $end_date);
+        }
+        $this->db->where('tt.id IS NULL', null, false);
+        $row = $this->db->get()->row();
+        return (int)($row->total ?? 0);
+    }
+
+    /**
+     * Count total dokumen dalam periode
+     */
+    public function count_total_by_period($start_date = null, $end_date = null) {
+        $this->db->from('jasa_bonus');
+        if (!empty($start_date)) { $this->db->where('periode >=', $start_date); }
+        if (!empty($end_date)) { $this->db->where('periode <=', $end_date); }
+        return (int)$this->db->count_all_results();
+    }
+
+    /**
+     * Count dokumen yang sudah ditandatangani (distinct) dalam periode
+     */
+    public function count_signed_by_period($start_date = null, $end_date = null) {
+        $this->db->select('COUNT(DISTINCT tt.jasa_bonus_id) as total', false);
+        $this->db->from('tanda_tangan tt');
+        $this->db->join('jasa_bonus jb', 'jb.id = tt.jasa_bonus_id');
+        if (!empty($start_date)) { $this->db->where('jb.periode >=', $start_date); }
+        if (!empty($end_date)) { $this->db->where('jb.periode <=', $end_date); }
+        $row = $this->db->get()->row();
+        return (int)($row->total ?? 0);
     }
 
     /**
@@ -430,5 +486,61 @@ class Jasa_bonus_model extends CI_Model {
         if ($exclude_id) { $this->db->where('id !=', $exclude_id); }
         $q = $this->db->get('jasa_bonus');
         return $q->num_rows() > 0;
+    }
+
+    /**
+     * Top pegawai dengan dokumen belum TTD dalam periode tertentu
+     * Mengembalikan array berisi item: ['nik','nama','pending','total','signed']
+     */
+    public function get_top_unsigned_users_by_period($start_date = null, $end_date = null, $limit = 5) {
+        $limit = max(1, min(50, (int)$limit));
+
+        // Total dokumen per nik dalam periode
+        $this->db->select('jb.nik, u.nama, COUNT(*) AS total');
+        $this->db->from('jasa_bonus jb');
+        $this->db->join('users u', 'u.nik = jb.nik', 'left');
+        if (!empty($start_date)) { $this->db->where('jb.periode >=', $start_date); }
+        if (!empty($end_date)) { $this->db->where('jb.periode <=', $end_date); }
+        $this->db->group_by('jb.nik');
+        $totals = $this->db->get()->result();
+
+        // Signed per nik (distinct jasa_bonus_id)
+        $this->db->select('jb.nik, COUNT(DISTINCT tt.jasa_bonus_id) AS signed', false);
+        $this->db->from('tanda_tangan tt');
+        $this->db->join('jasa_bonus jb', 'jb.id = tt.jasa_bonus_id');
+        if (!empty($start_date)) { $this->db->where('jb.periode >=', $start_date); }
+        if (!empty($end_date)) { $this->db->where('jb.periode <=', $end_date); }
+        $this->db->group_by('jb.nik');
+        $signedRows = $this->db->get()->result();
+
+        $signedMap = [];
+        foreach ($signedRows as $r) { $signedMap[$r->nik] = (int)$r->signed; }
+
+        $items = [];
+        foreach ($totals as $t) {
+            $nik = $t->nik;
+            $total = (int)$t->total;
+            $signed = (int)($signedMap[$nik] ?? 0);
+            $pending = max(0, $total - $signed);
+            if ($pending > 0) {
+                $items[] = [
+                    'nik' => $nik,
+                    'nama' => isset($t->nama) ? $t->nama : $nik,
+                    'pending' => $pending,
+                    'total' => $total,
+                    'signed' => $signed,
+                ];
+            }
+        }
+
+        // Urutkan berdasarkan pending desc, kemudian nama asc
+        usort($items, function($a, $b) {
+            if ($a['pending'] === $b['pending']) {
+                return strcmp($a['nama'], $b['nama']);
+            }
+            return ($a['pending'] > $b['pending']) ? -1 : 1;
+        });
+
+        return array_slice($items, 0, $limit);
     }
 }
