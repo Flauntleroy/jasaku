@@ -67,7 +67,7 @@
             <td class="px-4 py-3 text-center text-sm text-gray-700 dark:text-gray-300">
               <?php if (!empty($row->tanda_tangan_image)): ?>
                 <a href="<?= base_url($row->tanda_tangan_image) ?>" target="_blank" rel="noopener noreferrer" title="Buka gambar tanda tangan">
-                  <img src="<?= base_url($row->tanda_tangan_image) ?>" alt="Tanda Tangan" class="inline-block max-h-12 rounded" />
+                  <img src="<?= base_url($row->tanda_tangan_image) ?>" alt="Tanda Tangan" class="inline-block max-h-12 rounded" loading="lazy" decoding="async" />
                 </a>
               <?php else: ?>
                 —

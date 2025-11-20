@@ -128,6 +128,11 @@ class Admin extends CI_Controller {
         if ($this->input->get('print')) {
             $start_date = $this->input->get('start_date');
             $end_date = $this->input->get('end_date');
+            // Default ke 3 bulan terakhir bila filter kosong untuk menghindari load data besar
+            if (empty($start_date) && empty($end_date)) {
+                $start_date = date('Y-m-01', strtotime('-3 months'));
+                $end_date = date('Y-m-t');
+            }
             $data['laporan'] = $this->Tanda_tangan_model->get_for_export($start_date, $end_date);
             $data['start_date'] = $start_date;
             $data['end_date'] = $end_date;
@@ -138,6 +143,11 @@ class Admin extends CI_Controller {
         
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
+        // Default ke 3 bulan terakhir bila filter kosong untuk menghindari load data besar
+        if (empty($start_date) && empty($end_date)) {
+            $start_date = date('Y-m-01', strtotime('-3 months'));
+            $end_date = date('Y-m-t');
+        }
         
         $data['laporan'] = $this->Tanda_tangan_model->get_for_export($start_date, $end_date);
         $data['start_date'] = $start_date;
