@@ -182,7 +182,7 @@
 
 <!-- Edit Modal -->
 <div x-show="openEditUser" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-  <div @click.outside="openEditUser = false" class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-900">
+  <div @click.outside="openEditUser = false" class="max-w-lg rounded-xl bg-white p-6 dark:bg-gray-900">
     <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Edit Pegawai</h3>
     <form method="post" class="space-y-4">
       <input type="hidden" name="action" value="update" />

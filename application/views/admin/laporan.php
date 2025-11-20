@@ -49,6 +49,7 @@
           <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Pajak 15%</th>
           <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Pajak 0%</th>
           <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Stlh Pajak</th>
+          <th class="px-4 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">Tanda Tangan</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -63,9 +64,18 @@
             <td class="px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">Rp <?= number_format($row->pajak_15, 0, ',', '.') ?></td>
             <td class="px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">Rp <?= number_format($row->pajak_0, 0, ',', '.') ?></td>
             <td class="px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">Rp <?= number_format($row->terima_setelah_pajak, 0, ',', '.') ?></td>
+            <td class="px-4 py-3 text-center text-sm text-gray-700 dark:text-gray-300">
+              <?php if (!empty($row->tanda_tangan_image)): ?>
+                <a href="<?= base_url($row->tanda_tangan_image) ?>" target="_blank" rel="noopener noreferrer" title="Buka gambar tanda tangan">
+                  <img src="<?= base_url($row->tanda_tangan_image) ?>" alt="Tanda Tangan" class="inline-block max-h-12 rounded" />
+                </a>
+              <?php else: ?>
+                —
+              <?php endif; ?>
+            </td>
           </tr>
         <?php endforeach; else: ?>
-          <tr><td colspan="9" class="px-4 py-6 text-center text-sm text-gray-500">Tidak ada data.</td></tr>
+          <tr><td colspan="10" class="px-4 py-6 text-center text-sm text-gray-500">Tidak ada data.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
