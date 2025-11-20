@@ -1,6 +1,18 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+// Pastikan autoloader composer dicoba bila tersedia
+if (!class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+    $candidates = [
+        defined('FCPATH') ? FCPATH . 'vendor/autoload.php' : null,
+        defined('APPPATH') ? APPPATH . '../vendor/autoload.php' : null,
+        'vendor/autoload.php',
+    ];
+    foreach ($candidates as $aut) {
+        if ($aut && @is_file($aut)) { require_once $aut; break; }
+    }
+}
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;

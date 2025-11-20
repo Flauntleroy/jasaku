@@ -589,12 +589,81 @@ class Admin extends CI_Controller {
     private function export_laporan() {
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
+        $type = $this->input->get('export'); // 'xlsx' atau 'zip'
         
         $laporan = $this->Tanda_tangan_model->get_for_export($start_date, $end_date);
         
-        // Export to XLSX including signature image
+        // Bila diminta ZIP, langsung gunakan ZIP
+        if ($type === 'zip') {
+            $this->export_laporan_zip($laporan, $start_date, $end_date);
+            return;
+        }
+
+        // Default: coba XLSX; bila PhpSpreadsheet tidak tersedia, fallback ke ZIP
         $this->load->library('excel_export');
+        if (!class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+            $this->export_laporan_zip($laporan, $start_date, $end_date);
+            return;
+        }
         $this->excel_export->export_laporan($laporan, $start_date, $end_date);
+    }
+
+    /**
+     * Export Laporan TTD ke ZIP berisi CSV + foto tanda tangan
+     */
+    private function export_laporan_zip($laporan, $start_date = null, $end_date = null) {
+        // Siapkan CSV di memory
+        $fp = fopen('php://temp', 'w+');
+        // BOM untuk Excel
+        fwrite($fp, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        // Header
+        fputcsv($fp, [
+            'Tanggal TTD',
+            'Nama',
+            'Ruangan',
+            'Periode',
+            'Terima Sebelum Pajak',
+            'Pajak 5%',
+            'Pajak 15%',
+            'Pajak 0%',
+            'Terima Setelah Pajak',
+            'File Tanda Tangan'
+        ]);
+        // Rows
+        foreach ((array)$laporan as $row) {
+            $imgRel = isset($row->tanda_tangan_image) ? $row->tanda_tangan_image : '';
+            fputcsv($fp, [
+                isset($row->signed_at) ? $row->signed_at : '',
+                isset($row->nama) ? $row->nama : '',
+                isset($row->ruangan) ? $row->ruangan : '',
+                isset($row->periode) ? $row->periode : '',
+                isset($row->terima_sebelum_pajak) ? $row->terima_sebelum_pajak : 0,
+                isset($row->pajak_5) ? $row->pajak_5 : 0,
+                isset($row->pajak_15) ? $row->pajak_15 : 0,
+                isset($row->pajak_0) ? $row->pajak_0 : 0,
+                isset($row->terima_setelah_pajak) ? $row->terima_setelah_pajak : 0,
+                $imgRel ? ('signatures/' . basename($imgRel)) : ''
+            ]);
+        }
+        rewind($fp);
+        $csvData = stream_get_contents($fp);
+        fclose($fp);
+
+        // Bangun ZIP
+        $this->load->library('zip');
+        $this->zip->add_data('laporan.csv', $csvData);
+        foreach ((array)$laporan as $row) {
+            $imgRel = isset($row->tanda_tangan_image) ? $row->tanda_tangan_image : null;
+            if ($imgRel) {
+                $imgRel = ltrim($imgRel, '/');
+                $abs = defined('FCPATH') ? FCPATH . $imgRel : $imgRel;
+                if (is_file($abs)) {
+                    $this->zip->add_data('signatures/' . basename($imgRel), @file_get_contents($abs));
+                }
+            }
+        }
+        $filename = 'laporan_ttd_' . date('Ymd_His') . '.zip';
+        $this->zip->download($filename);
     }
 
     /** Export semua data jasa/bonus ke Excel sesuai format yang diminta

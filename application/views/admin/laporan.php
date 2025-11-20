@@ -29,6 +29,7 @@
     <div class="flex items-end gap-2">
       <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Terapkan</button>
       <a href="<?= current_url() ?>?export=xlsx<?= $start_date? '&start_date='.urlencode($start_date):'' ?><?= $end_date? '&end_date='.urlencode($end_date):'' ?>" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Download XLSX (+ Foto TTD)</a>
+      <a href="<?= current_url() ?>?export=zip<?= $start_date? '&start_date='.urlencode($start_date):'' ?><?= $end_date? '&end_date='.urlencode($end_date):'' ?>" class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">Download ZIP (CSV + Foto TTD)</a>
       <a href="<?= current_url() ?>?print=1<?= $start_date? '&start_date='.urlencode($start_date):'' ?><?= $end_date? '&end_date='.urlencode($end_date):'' ?>" target="_blank" class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Print</a>
     </div>
   </form>
