@@ -16,10 +16,10 @@
     <?php
       $twCompiledPath = FCPATH . 'assets/css/tailwind.css';
       $isDev = defined('ENVIRONMENT') ? (ENVIRONMENT !== 'production') : true;
-      if (file_exists($twCompiledPath)) {
+      $href = base_url('assets/css/tailwind.css' . (file_exists($twCompiledPath) ? ('?v=' . filemtime($twCompiledPath)) : ''));
     ?>
-      <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css?v=' . filemtime($twCompiledPath)) ?>">
-    <?php } elseif ($isDev) { ?>
+      <link rel="stylesheet" href="<?= $href ?>">
+    <?php if ($isDev && !file_exists($twCompiledPath)) { ?>
       <script src="https://cdn.tailwindcss.com"></script>
       <script>
         tailwind.config = {
@@ -48,8 +48,6 @@
           }
         }
       </script>
-    <?php } else { ?>
-      <!-- Tailwind build tidak ditemukan di produksi. Silakan build dan letakkan di assets/css/tailwind.css -->
     <?php } ?>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
