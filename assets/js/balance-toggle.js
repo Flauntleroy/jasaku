@@ -5,44 +5,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const eyeIcon = document.getElementById('eyeIcon');
     const eyeSlashIcon = document.getElementById('eyeSlashIcon');
     const toggleText = document.getElementById('toggleText');
-    
-    // Check if balance visibility state is stored in localStorage
-    // Default to hidden if not set (first time login)
+    const hasIcons = !!(eyeIcon && eyeSlashIcon && toggleText);
+
     const isBalanceHidden = localStorage.getItem('balanceHidden') !== 'false';
-    
-    // Set initial state based on localStorage or default to hidden
+
     if (isBalanceHidden) {
         hideBalance();
     } else {
         showBalance();
     }
-    
-    // Toggle balance visibility when button is clicked
-    toggleButton.addEventListener('click', function() {
-        if (balanceValues[0].classList.contains('hidden')) {
-            showBalance();
-            localStorage.setItem('balanceHidden', 'false');
-        } else {
-            hideBalance();
-            localStorage.setItem('balanceHidden', 'true');
-        }
-    });
-    
-    // Function to hide balance
-    function hideBalance() {
-        balanceValues.forEach(el => el.classList.add('hidden'));
-        balanceHidden.forEach(el => el.classList.remove('hidden'));
-        eyeIcon.classList.add('hidden');
-        eyeSlashIcon.classList.remove('hidden');
-        toggleText.textContent = 'Tampilkan Jasa';
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', function() {
+            const firstValue = balanceValues[0];
+            if (firstValue && firstValue.classList.contains('hidden')) {
+                showBalance();
+                localStorage.setItem('balanceHidden', 'false');
+            } else {
+                hideBalance();
+                localStorage.setItem('balanceHidden', 'true');
+            }
+        });
     }
-    
-    // Function to show balance
+
+    function hideBalance() {
+        balanceValues.forEach(el => { if (el && el.classList) el.classList.add('hidden'); });
+        balanceHidden.forEach(el => { if (el && el.classList) el.classList.remove('hidden'); });
+        if (hasIcons) {
+            eyeIcon.classList.add('hidden');
+            eyeSlashIcon.classList.remove('hidden');
+            toggleText.textContent = 'Tampilkan Jasa';
+        }
+    }
+
     function showBalance() {
-        balanceValues.forEach(el => el.classList.remove('hidden'));
-        balanceHidden.forEach(el => el.classList.add('hidden'));
-        eyeIcon.classList.remove('hidden');
-        eyeSlashIcon.classList.add('hidden');
-        toggleText.textContent = 'Sembunyikan Jasa';
+        balanceValues.forEach(el => { if (el && el.classList) el.classList.remove('hidden'); });
+        balanceHidden.forEach(el => { if (el && el.classList) el.classList.add('hidden'); });
+        if (hasIcons) {
+            eyeIcon.classList.remove('hidden');
+            eyeSlashIcon.classList.add('hidden');
+            toggleText.textContent = 'Sembunyikan Jasa';
+        }
     }
 });

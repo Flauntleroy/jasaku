@@ -31,6 +31,14 @@
       <div class="hidden lg:block">
         <form>
           <!-- Optional search or actions -->
+          <!-- Placeholder elements to avoid JS errors when search UI not present -->
+          <input id="search-input" type="text" class="hidden" aria-hidden="true" />
+          <button id="search-button" type="button" class="hidden" aria-hidden="true">Search</button>
+          <!-- Copy feature placeholders to satisfy bundle/index.js when not present -->
+          <input id="copy-input" type="text" class="hidden" aria-hidden="true" />
+          <input id="website-input" type="text" class="hidden" aria-hidden="true" />
+          <button id="copy-button" type="button" class="hidden" aria-hidden="true">Copy</button>
+          <span id="copy-text" class="hidden" aria-hidden="true">Copy</span>
         </form>
       </div>
       <span class="sm:hidden ml-auto text-sm font-medium text-gray-700 dark:text-white max-w-[45vw] truncate ">

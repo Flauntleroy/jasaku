@@ -81,7 +81,11 @@
                     'phone' => $u->phone ?? '',
                   ];
                 ?>
-                <button @click='editUser = <?= json_encode($safeUser) ?>; openEditUser = true' class="rounded-lg bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-600 hover:bg-amber-500/20">Edit</button>
+                <button
+                  x-on:click="editUser = JSON.parse($el.dataset.user); openEditUser = true"
+                  data-user='<?= htmlspecialchars(json_encode($safeUser), ENT_QUOTES, 'UTF-8') ?>'
+                  class="rounded-lg bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-600 hover:bg-amber-500/20"
+                >Edit</button>
                 <?php if ($u->role !== 'admin'): ?>
                   <form method="post" class="inline" onsubmit="return confirm('Kirim kode aktivasi via WhatsApp?')">
                     <input type="hidden" name="action" value="send_activation_whatsapp" />
