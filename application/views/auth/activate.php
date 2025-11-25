@@ -13,34 +13,44 @@
   <meta name="theme-color" content="#475569" />
   <link rel="apple-touch-icon" sizes="192x192" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
   <link rel="apple-touch-icon" sizes="512x512" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'brand': {
-                50: '#f8fafc',
-                100: '#f1f5f9',
-                300: '#cbd5e1',
-                500: '#475569',
-                600: '#334155',
-                800: '#1e293b',
-                950: '#0f172a'
+    <?php
+      $twCompiledPath = FCPATH . 'assets/css/tailwind.css';
+      $isDev = defined('ENVIRONMENT') ? (ENVIRONMENT !== 'production') : true;
+      if (file_exists($twCompiledPath)) {
+    ?>
+      <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css?v=' . filemtime($twCompiledPath)) ?>">
+    <?php } elseif ($isDev) { ?>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'brand': {
+                  50: '#f8fafc',
+                  100: '#f1f5f9',
+                  300: '#cbd5e1',
+                  500: '#475569',
+                  600: '#334155',
+                  800: '#1e293b',
+                  950: '#0f172a'
+                }
+              },
+              fontFamily: {
+                'inter': ['Inter', 'system-ui', 'sans-serif']
+              },
+              animation: {
+                'fade-in': 'fadeIn 0.6s ease-out',
+                'slide-up': 'slideUp 0.8s ease-out',
+                'pulse-subtle': 'pulseSubtle 2s infinite'
               }
-            },
-            fontFamily: {
-              'inter': ['Inter', 'system-ui', 'sans-serif']
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.6s ease-out',
-              'slide-up': 'slideUp 0.8s ease-out',
-              'pulse-subtle': 'pulseSubtle 2s infinite'
             }
           }
         }
-      }
-    </script>
+      </script>
+    <?php } else { ?>
+      <!-- Tailwind build tidak ditemukan di produksi. Silakan build dan letakkan di assets/css/tailwind.css -->
+    <?php } ?>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       
