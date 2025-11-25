@@ -7,108 +7,20 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>Login - Sistem Tanda Tangan Digital Jasa/Bonus</title>
-  <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" />
-  <link rel="manifest" href="<?= base_url('assets/manifest.webmanifest?v=1') ?>">
-  <meta name="theme-color" content="#475569" />
-  <link rel="apple-touch-icon" sizes="192x192" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
-  <link rel="apple-touch-icon" sizes="512x512" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
-    <?php
-      $twCompiledPath = FCPATH . 'assets/css/tailwind.css';
-      $isDev = defined('ENVIRONMENT') ? (ENVIRONMENT !== 'production') : true;
-      $href = base_url('assets/css/tailwind.css' . (file_exists($twCompiledPath) ? ('?v=' . filemtime($twCompiledPath)) : ''));
-    ?>
-      <link rel="stylesheet" href="<?= $href ?>">
-    <?php if ($isDev && !file_exists($twCompiledPath)) { ?>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script>
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                'brand': {
-                  50: '#f8fafc',
-                  100: '#f1f5f9',
-                  300: '#cbd5e1',
-                  500: '#475569',
-                  600: '#334155',
-                  800: '#1e293b',
-                  950: '#0f172a'
-                }
-              },
-              fontFamily: {
-                'inter': ['Inter', 'system-ui', 'sans-serif']
-              },
-              animation: {
-                'fade-in': 'fadeIn 0.6s ease-out',
-                'slide-up': 'slideUp 0.8s ease-out',
-                'pulse-subtle': 'pulseSubtle 2s infinite'
-              }
-            }
-          }
-        }
-      </script>
-    <?php } ?>
+    <title>Login - Sistem Tanda Tangan Digital Jasa/Bonus</title>
+    <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" />
+    <link rel="manifest" href="<?= base_url('assets/manifest.webmanifest?v=1') ?>">
+    <meta name="theme-color" content="#475569" />
+    <link rel="apple-touch-icon" sizes="192x192" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
+    <link rel="apple-touch-icon" sizes="512x512" href="<?= base_url('assets/images/logo/jasaku-login.png') ?>">
+    <!-- Tailwind CSS lokal (dibangun via CLI) -->
+    <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>" />
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-      
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      
-      @keyframes slideUp {
-        from { 
-          opacity: 0; 
-          transform: translateY(30px); 
-        }
-        to { 
-          opacity: 1; 
-          transform: translateY(0); 
-        }
-      }
-      
-      @keyframes pulseSubtle {
-        0%, 100% { opacity: 0.8; }
-        50% { opacity: 0.4; }
-      }
-      
-      .glass-effect {
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      .input-focus {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      .input-focus:focus {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      }
-      
-      .btn-hover {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-      }
-      
-      .btn-hover:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        transition: left 0.5s;
-      }
-      
-      .btn-hover:hover:before {
-        left: 100%;
-      }
+      .input-focus { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .input-focus:focus { transform: translateY(-1px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+      .btn-hover { position: relative; overflow: hidden; transition: all 0.3s ease; }
+      .btn-hover:before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition: left 0.5s; }
+      .btn-hover:hover:before { left: 100%; }
     </style>
   </head>
   <body 
@@ -153,22 +65,15 @@
 
     <!-- Main Container -->
     <div class="min-h-screen flex">
-      <!-- Left Panel - Form -->
       <div class="flex-1 flex items-center justify-center p-8 bg-white dark:bg-gray-900 transition-colors duration-300">
         <div class="w-full max-w-md animate-slide-up">
-          <!-- Header -->
           <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-33 h-33">
+            <div class="inline-flex items-center justify-center w-52 h-52 mx-auto mb-2">
               <img src="<?= base_url('assets/images/logo/jasaku-login.png'); ?>" 
-                  alt="Logo Jasa-Ku"
-                  class="w-33 h-33 object-contain">
+                   alt="Logo Jasaku"
+                   class="w-full h-full object-contain drop-shadow-sm">
             </div>
-            <!-- <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Jasa-Ku
-            </h1> -->
-            <p class="text-gray-500 dark:text-gray-400">
-              <!-- Login untuk mengakses sistem tanda tangan digital jasa -->
-            </p>
+            <p class="text-gray-500 dark:text-gray-400"></p>
           </div>
 
           <!-- Server Messages -->
@@ -265,20 +170,25 @@
               </span>
             </button>
 
-            <!-- Additional Link -->
-            <div class="text-center">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Belum punya akun? 
-                <a href="<?= base_url('auth/activate') ?>" class="text-brand-500 hover:text-brand-600 font-medium hover:underline transition-all">
-                  Aktivasi Akun
-                </a>
-              </p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Lupa password? 
-                <a href="<?= base_url('auth/forgot_password') ?>" class="text-brand-500 hover:text-brand-600 font-medium hover:underline transition-all">
+            <!-- CTA Reset & Aktivasi yang lebih menonjol -->
+            <div class="mt-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a href="<?= base_url('auth/forgot_password') ?>" 
+                   class="group flex items-center justify-center gap-2 rounded-xl border border-brand-500/30 bg-brand-50 dark:bg-gray-800 py-3 px-3 text-brand-700 dark:text-brand-300 font-medium shadow-sm hover:shadow-md hover:bg-brand-100 dark:hover:bg-gray-700 transition">
+                  <svg class="w-5 h-5 text-brand-600 dark:text-brand-300 group-hover:text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657-1.343-3-3-3S6 9.343 6 11s1.343 3 3 3 3-1.343 3-3zm0 0c1.306 0 2.417.835 2.83 2M9 13a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                  </svg>
                   Reset Password
                 </a>
-              </p>
+                <a href="<?= base_url('auth/activate') ?>" 
+                   class="group flex items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-50 dark:bg-gray-800 py-3 px-3 text-green-700 dark:text-green-300 font-medium shadow-sm hover:shadow-md hover:bg-green-100 dark:hover:bg-gray-700 transition">
+                  <svg class="w-5 h-5 text-green-600 dark:text-green-300 group-hover:text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Aktivasi Akun
+                </a>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">Pastikan nomor WhatsApp sudah terdaftar untuk aktivasi/reset.</p>
             </div>
           </form>
         </div>
@@ -294,12 +204,6 @@
 
         <!-- Content -->
         <div class="relative z-10 text-center max-w-md animate-fade-in">
-          <!-- <div class="inline-flex items-center justify-center w-24 h-24 bg-white dark:bg-gray-800 rounded-3xl shadow-xl mb-8">
-            <svg class="w-12 h-12 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div> -->
-          
           <h2 class="text-xl text-gray-600 dark:text-gray-400 mb-8">
             Sistem Tanda Tangan Jasa Digital
           </h2>
@@ -307,33 +211,6 @@
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             RSUD H. ABDUL AZIZ MARABAHAN
           </h1>
-
-          
-          
-          <!-- <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
-            Jasa & Bonus
-          </p>
-          
-          <div class="space-y-4 text-gray-500 dark:text-gray-400">
-            <div class="flex items-center justify-center">
-              <svg class="w-5 h-5 text-brand-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              <span>Aman & Terpercaya</span>
-            </div>
-            <div class="flex items-center justify-center">
-              <svg class="w-5 h-5 text-brand-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              <span>Mudah Digunakan</span>
-            </div>
-            <div class="flex items-center justify-center">
-              <svg class="w-5 h-5 text-brand-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              <span>Hasil Profesional</span>
-            </div> -->
-          </div>
         </div>
       </div>
     </div>

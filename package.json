@@ -2,14 +2,12 @@
   "name": "jasaku",
   "version": "1.0.0",
   "private": true,
-  "description": "Build Tailwind CSS for Jasaku",
   "scripts": {
-    "build:css": "tailwindcss -c tailwind.config.js -i assets/css/tw.input.css -o assets/css/tailwind.css --minify"
+    "tw:build": "tailwindcss -i ./assets/css/input.css -o ./assets/css/tailwind.css --minify",
+    "tw:watch": "tailwindcss -i ./assets/css/input.css -o ./assets/css/tailwind.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.17",
-    "autoprefixer": "^10.4.22",
-    "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17"
   }
 }

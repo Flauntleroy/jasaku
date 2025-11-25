@@ -23,19 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-// Dynamic base_url with port and subdirectory support
-// If you prefer hardcoding for production, override this via environment-specific config.
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost');
-$port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : null;
-// Append port if not already in host and it's non-default
-if ($port && !preg_match('/:\\d+$/', $host) && !in_array($port, ['80', '443'], true)) {
-    $host .= ':' . $port;
-}
-// Determine base path (subdirectory) from script name
-$basePath = str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
-$basePath = rtrim($basePath, '/\\') . '/';
-$config['base_url'] = $scheme . '://' . $host . $basePath;
+$config['base_url'] = 'http://localhost/jasaku/';
 
 /*
 |--------------------------------------------------------------------------
