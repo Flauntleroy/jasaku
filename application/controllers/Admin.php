@@ -54,7 +54,6 @@ class Admin extends CI_Controller {
         $data['stats'] = $this->Jasa_bonus_model->get_statistics();
         // Get charts data
         $data['monthly'] = $this->Jasa_bonus_model->get_monthly_sums(12);
-        $data['signed_percent'] = $this->Jasa_bonus_model->get_signed_percentage();
         
         // Filter bulan untuk statistik Belum TTD (opsional)
         $unsigned_month = $this->input->get('unsigned_month'); // format YYYY-MM
@@ -66,6 +65,26 @@ class Admin extends CI_Controller {
         $data['unsigned_count'] = $this->Jasa_bonus_model->count_unsigned_by_period($monthStart, $monthEnd);
         $data['unsigned_month_total'] = $this->Jasa_bonus_model->count_total_by_period($monthStart, $monthEnd);
         $data['unsigned_month_signed'] = $this->Jasa_bonus_model->count_signed_by_period($monthStart, $monthEnd);
+
+        // Rentang bulan untuk Persentase Belum TTD
+        $rangeStartMonth = $this->input->get('unsigned_range_start'); // YYYY-MM
+        $rangeEndMonth = $this->input->get('unsigned_range_end');   // YYYY-MM
+        if (empty($rangeStartMonth) || empty($rangeEndMonth)) {
+            $rangeStartMonth = date('Y-01');
+            $rangeEndMonth = date('Y-m');
+        }
+        $rangeStart = $rangeStartMonth . '-01';
+        $rangeEnd = date('Y-m-t', strtotime($rangeEndMonth . '-01'));
+        $data['unsigned_range_start'] = $rangeStartMonth;
+        $data['unsigned_range_end'] = $rangeEndMonth;
+        $data['unsigned_range_label'] = date('M Y', strtotime($rangeStart)) . ' — ' . date('M Y', strtotime($rangeEnd));
+        $unsignedRangeTotal = $this->Jasa_bonus_model->count_total_by_period($rangeStart, $rangeEnd);
+        $unsignedRangeUnsigned = $this->Jasa_bonus_model->count_unsigned_by_period($rangeStart, $rangeEnd);
+        $unsignedRangeSigned = $this->Jasa_bonus_model->count_signed_by_period($rangeStart, $rangeEnd);
+        $data['unsigned_range_total'] = $unsignedRangeTotal;
+        $data['unsigned_range_unsigned'] = $unsignedRangeUnsigned;
+        $data['unsigned_range_signed'] = $unsignedRangeSigned;
+        $data['unsigned_percent'] = round(($unsignedRangeUnsigned / max(1, $unsignedRangeTotal)) * 100, 2);
 
         // Panel Top Pegawai tidak digunakan; baris dihapus untuk menghindari query tambahan
 
@@ -795,5 +814,51 @@ class Admin extends CI_Controller {
             $this->session->set_flashdata('error', 'Gagal memproses file Excel: '.$e->getMessage());
         }
         redirect('admin/jasa-bonus');
+    }
+
+    /**
+     * JSON endpoint: statistik TTD untuk rentang bulan
+     * GET params: start=YYYY-MM, end=YYYY-MM
+     */
+    public function unsigned_range_stats() {
+        $start = $this->input->get('start');
+        $end = $this->input->get('end');
+
+        // Normalisasi nilai bulan
+        $startMonth = (!empty($start) && preg_match('/^\d{4}-\d{2}$/', $start)) ? $start : date('Y-01');
+        $endMonth = (!empty($end) && preg_match('/^\d{4}-\d{2}$/', $end)) ? $end : date('Y-m');
+        $rangeStart = $startMonth . '-01';
+        $rangeEnd = date('Y-m-t', strtotime($endMonth . '-01'));
+
+        // Pastikan start tidak lewat end
+        if (strtotime($rangeStart) > strtotime($rangeEnd)) {
+            $tmp = $startMonth; $startMonth = $endMonth; $endMonth = $tmp;
+            $rangeStart = $startMonth . '-01';
+            $rangeEnd = date('Y-m-t', strtotime($endMonth . '-01'));
+        }
+
+        $total = $this->Jasa_bonus_model->count_total_by_period($rangeStart, $rangeEnd);
+        $unsigned = $this->Jasa_bonus_model->count_unsigned_by_period($rangeStart, $rangeEnd);
+        $signed = $this->Jasa_bonus_model->count_signed_by_period($rangeStart, $rangeEnd);
+
+        $label = sprintf('%s — %s',
+            date('M Y', strtotime($startMonth . '-01')),
+            date('M Y', strtotime($endMonth . '-01'))
+        );
+
+        $payload = [
+            'start' => $startMonth,
+            'end' => $endMonth,
+            'label' => $label,
+            'total' => (int)$total,
+            'unsigned' => (int)$unsigned,
+            'signed' => (int)$signed,
+            'unsigned_percent' => $total ? round(($unsigned / $total) * 100, 2) : 0,
+            'signed_percent' => $total ? round(($signed / $total) * 100, 2) : 0,
+        ];
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($payload));
     }
 }

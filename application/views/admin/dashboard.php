@@ -109,58 +109,52 @@
   </div>
 
   <div class="col-span-12 xl:col-span-5">
-    <!-- Statistik: Belum TTD per Bulan -->
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6 mb-6">
-      <div class="mb-4 flex items-center justify-between">
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Total Belum TTD per Bulan</h3>
-          <!-- <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Pilih bulan periode saja</p> -->
-        </div>
-      </div>
-      <form method="get" action="<?= base_url('admin/dashboard') ?>" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div>
-          <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Bulan</label>
-          <input type="month" name="unsigned_month" value="<?= html_escape($unsigned_month ?? date('Y-m')) ?>" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" />
-        </div>
-        <div class="flex items-end gap-2 sm:col-span-2">
-          <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-gray-100 hover:bg-blue-700 dark:text-white/90">Apply</button>
-          <a href="<?= base_url('admin/dashboard') ?>" class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Reset</a>
-        </div>
-      </form>
-      <div class="mt-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-sm text-gray-500 dark:text-gray-400">Total Belum TTD</span>
-            <h4 class="mt-1 text-3xl font-bold text-gray-800 dark:text-white/90">
-              <?= number_format((int)($unsigned_count ?? 0)) ?>
-            </h4>
-          </div>
-          <div class="text-right text-xs text-gray-500 dark:text-gray-400">
-            <div>Bulan: <?= html_escape($unsigned_month_label ?? '') ?></div>
-          </div>
-        </div>
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Total Dokumen</div>
-            <div class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_month_total ?? 0)) ?></div>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Sudah TTD</div>
-            <div class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_month_signed ?? 0)) ?></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Chart: Persentase TTD -->
+    <!-- Chart: Persentase Belum TTD dengan Rentang Bulan -->
     <div class="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="shadow-default rounded-2xl bg-white px-5 pb-11 pt-5 dark:bg-gray-900 sm:px-6 sm:pt-6">
         <div class="flex justify-between">
           <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Persentase TTD</h3>
-            <!-- <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">Dokumen bertanda tangan / total</p> -->
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Persentase Tandatangan</h3>
           </div>
         </div>
+        <form id="unsignedRangeForm" method="get" action="<?= base_url('admin/dashboard') ?>" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Mulai</label>
+            <input id="unsignedRangeStart" type="month" name="unsigned_range_start" value="<?= html_escape($unsigned_range_start ?? date('Y-01')) ?>" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm text-gray-600 dark:text-gray-400">Sampai</label>
+            <input id="unsignedRangeEnd" type="month" name="unsigned_range_end" value="<?= html_escape($unsigned_range_end ?? date('Y-m')) ?>" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" />
+          </div>
+          <div class="flex items-end gap-2">
+            <button id="unsignedRangeApply" type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-gray-100 hover:bg-blue-700 dark:text-white/90">Apply</button>
+            <button id="unsignedRangeReset" type="button" class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Reset</button>
+          </div>
+        </form>
+      <div id="unsignedRangeLabel" class="mt-2 text-right text-xs text-gray-500 dark:text-gray-400">Rentang: <?= html_escape($unsigned_range_label ?? '') ?></div>
         <div class="relative max-h-[195px]"><div id="chartSigned" class="h-full"></div></div>
+        <!-- Bagian ringkasan bulanan dipindahkan ke dalam kartu Persentase -->
+        <div class="mt-6 rounded-xl bg-gray-50 p-4 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+          <div class="mb-2 flex items-center justify-between">
+            <div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">Total Belum TTD</span>
+              <h4 id="unsignedMonthlyCount" class="mt-1 text-3xl font-bold text-gray-800 dark:text-white/90">
+                <?= number_format((int)($unsigned_range_unsigned ?? 0)) ?>
+              </h4>
+            </div>
+            <div class="text-right text-xs text-gray-500 dark:text-gray-400">Dalam Rentang: <span id="unsignedMonthlyLabel"><?= html_escape($unsigned_range_label ?? '') ?></span></div>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
+              <div class="text-xs text-gray-500 dark:text-gray-400">Total Dokumen</div>
+              <div id="unsignedMonthlyTotal" class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_range_total ?? 0)) ?></div>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-800">
+              <div class="text-xs text-gray-500 dark:text-gray-400">Sudah TTD</div>
+              <div id="unsignedMonthlySigned" class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90"><?= number_format((int)($unsigned_range_signed ?? 0)) ?></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -293,7 +287,15 @@
       const categories = <?= json_encode($monthly['categories'] ?? []) ?>;
       const bruto = <?= json_encode($monthly['bruto'] ?? []) ?>;
       const netto = <?= json_encode($monthly['netto'] ?? []) ?>;
-      const signedPercent = <?= json_encode($signed_percent ?? 0) ?>;
+      const unsignedPercent = Number(<?= json_encode($unsigned_percent ?? 0) ?>);
+      let unsignedCount = Number(<?= json_encode($unsigned_range_unsigned ?? 0) ?>);
+      let signedCount = Number(<?= json_encode($unsigned_range_signed ?? 0) ?>);
+      let totalDocs = unsignedCount + signedCount;
+      let signedPercent = totalDocs ? Number(((signedCount / totalDocs) * 100).toFixed(2)) : 0;
+
+      const unsignedStatsUrl = '<?= site_url('admin/unsigned_range_stats') ?>';
+      const defaultStartMonth = '<?= html_escape($unsigned_range_start ?? date('Y-01')) ?>';
+      const defaultEndMonth = '<?= html_escape($unsigned_range_end ?? date('Y-m')) ?>';
 
       
       const elMonthly = document.querySelector('#chartMonthly');
@@ -321,13 +323,43 @@
       const elSigned = document.querySelector('#chartSigned');
       if (elSigned) {
         const options = {
-          series: [Number(signedPercent)],
+          series: [signedPercent],
           colors: ['#465FFF'],
           chart: { type: 'radialBar', height: 260, sparkline: { enabled: true }, fontFamily: 'Outfit, sans-serif' },
-          plotOptions: { radialBar: { startAngle: -90, endAngle: 90, hollow: { size: '70%' }, track: { background: '#E4E7EC', strokeWidth: '100%', margin: 5 }, dataLabels: { name: { show: false }, value: { fontSize: '28px', fontWeight: 600, offsetY: 8, formatter: val => val + '%' } } } },
-          labels: ['Signed %'],
+          plotOptions: {
+            radialBar: {
+              startAngle: -90,
+              endAngle: 90,
+              hollow: { size: '70%' },
+              track: { background: '#E4E7EC', strokeWidth: '100%', margin: 5 },
+              dataLabels: {
+                name: { show: false },
+                value: { fontSize: '28px', fontWeight: 600, offsetY: 8, formatter: val => val + '%' }
+              }
+            }
+          },
+          labels: ['Sudah TTD %'],
+          tooltip: {
+            enabled: true,
+            custom: function({ series }) {
+              const unsigned = unsignedCount;
+              const signed = signedCount;
+              const total = unsigned + signed;
+              const pct = (series && series.length ? series[0] : 0).toFixed(1);
+              const nf = new Intl.NumberFormat('id-ID');
+              return (
+                '<div class="px-3 py-2 text-sm text-black dark:text-white">'
+                + '<div>Sudah TTD: <strong>' + nf.format(signed) + '</strong></div>'
+                + '<div>Belum TTD: <strong>' + nf.format(unsigned) + '</strong></div>'
+                + '<div>Total: <strong>' + nf.format(total) + '</strong></div>'
+                // + '<div class="mt-1 text-xs text-gray-500 dark:text-gray-300">Sudah: ' + pct + '%</div>'
+                + '</div>'
+              );
+            }
+          }
         };
         const chart = new ApexCharts(elSigned, options); chart.render();
+        window.chartSignedInstance = chart;
       }
 
       
@@ -346,6 +378,83 @@
           grid: { yaxis: { lines: { show: true } } },
         };
         const chart = new ApexCharts(elNetto, options); chart.render();
+      }
+
+      // Helpers untuk bulanan
+      const monthlyCountEl = document.getElementById('unsignedMonthlyCount');
+      const monthlyTotalEl = document.getElementById('unsignedMonthlyTotal');
+      const monthlySignedEl = document.getElementById('unsignedMonthlySigned');
+      const monthlyLabelEl = document.getElementById('unsignedMonthlyLabel');
+
+      function formatMonthLabel(ym) {
+        const [y, m] = (ym || '').split('-');
+        const d = new Date(Number(y || 1970), Number(m || 1) - 1, 1);
+        return d.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+      }
+
+      
+
+      // Sinkronisasi awal ringkasan: gunakan nilai dari server (sudah sesuai rentang)
+
+      // Wire up AJAX for unsigned range form (Apply & Reset)
+      const formRange = document.getElementById('unsignedRangeForm');
+      const btnApply = document.getElementById('unsignedRangeApply');
+      const btnReset = document.getElementById('unsignedRangeReset');
+      const inputStart = document.getElementById('unsignedRangeStart');
+      const inputEnd = document.getElementById('unsignedRangeEnd');
+      const labelEl = document.getElementById('unsignedRangeLabel');
+
+      async function fetchAndUpdateRange(start, end) {
+        try {
+          btnApply.disabled = true; btnApply.textContent = 'Memproses…';
+          const params = new URLSearchParams({ start, end });
+          const res = await fetch(unsignedStatsUrl + '?' + params.toString(), { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error('Gagal mengambil data (' + res.status + ')');
+          const data = await res.json();
+
+          // Update local state
+          unsignedCount = Number(data.unsigned || 0);
+          signedCount = Number(data.signed || 0);
+          totalDocs = unsignedCount + signedCount;
+          signedPercent = Number((data.signed_percent || (totalDocs ? (signedCount / totalDocs) * 100 : 0)).toFixed(2));
+
+          // Update chart & label
+          if (window.chartSignedInstance) {
+            window.chartSignedInstance.updateSeries([signedPercent]);
+          }
+          if (labelEl) {
+            labelEl.textContent = 'Rentang: ' + (data.label || (start + ' — ' + end));
+          }
+
+          // Perbarui ringkasan bawah dengan total dalam rentang
+          const nf = new Intl.NumberFormat('id-ID');
+          if (monthlyCountEl) monthlyCountEl.textContent = nf.format(unsignedCount);
+          if (monthlyTotalEl) monthlyTotalEl.textContent = nf.format(totalDocs);
+          if (monthlySignedEl) monthlySignedEl.textContent = nf.format(signedCount);
+          if (monthlyLabelEl) monthlyLabelEl.textContent = (data.label || (start + ' — ' + end));
+        } catch (err) {
+          console.error(err);
+          alert('Terjadi kesalahan saat memuat data rentang.');
+        } finally {
+          btnApply.disabled = false; btnApply.textContent = 'Apply';
+        }
+      }
+
+      if (formRange) {
+        formRange.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const start = inputStart?.value || defaultStartMonth;
+          const end = inputEnd?.value || defaultEndMonth;
+          fetchAndUpdateRange(start, end);
+        });
+      }
+
+      if (btnReset) {
+        btnReset.addEventListener('click', function() {
+          if (inputStart) inputStart.value = defaultStartMonth;
+          if (inputEnd) inputEnd.value = defaultEndMonth;
+          fetchAndUpdateRange(defaultStartMonth, defaultEndMonth);
+        });
       }
     };
 
