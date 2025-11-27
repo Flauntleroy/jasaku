@@ -222,6 +222,236 @@ class Admin extends CI_Controller {
         $this->load->view('template/main', $data);
     }
 
+    /** Push Notifikasi FCM - Halaman & Aksi */
+    public function push_notification() {
+        $data['title'] = 'Push Notifikasi';
+        $data['page_title'] = 'Push Notifikasi FCM';
+
+        $action = $this->input->post('action');
+        if ($action === 'send') {
+            $this->form_validation->set_rules('title', 'Judul', 'required|trim');
+            $this->form_validation->set_rules('body', 'Isi Pesan', 'required|trim');
+
+            if ($this->form_validation->run() === FALSE) {
+                $this->session->set_flashdata('error', validation_errors());
+            } else {
+                $title = $this->input->post('title', TRUE);
+                $body = $this->input->post('body', TRUE);
+                $channelId = $this->input->post('channel_id', TRUE);
+                $sound     = $this->input->post('sound', TRUE);
+                $mode      = $this->input->post('send_mode', TRUE);
+                $mode      = in_array($mode, array('data','notification')) ? $mode : 'data';
+                $resp = $this->send_notification($title, $body, $channelId ?: null, $sound ?: null, $mode);
+                if ($resp['ok']) {
+                    $this->session->set_flashdata('success', 'Notifikasi berhasil dikirim. ID: ' . ($resp['message_id'] ?? 'n/a'));
+                } else {
+                    $this->session->set_flashdata('error', 'Gagal mengirim notifikasi: ' . $resp['error']);
+                }
+                redirect('admin/notifikasi');
+                return;
+            }
+        } elseif ($action === 'add_template') {
+            $this->form_validation->set_rules('tpl_title', 'Judul Template', 'required|trim');
+            $this->form_validation->set_rules('tpl_body', 'Isi Template', 'required|trim');
+
+            if ($this->form_validation->run() === FALSE) {
+                $this->session->set_flashdata('error', validation_errors());
+            } else {
+                $tTitle = $this->input->post('tpl_title', TRUE);
+                $tBody  = $this->input->post('tpl_body', TRUE);
+                $ok = $this->add_notification_template($tTitle, $tBody);
+                if ($ok) {
+                    $this->session->set_flashdata('success', 'Template berhasil ditambahkan.');
+                } else {
+                    $this->session->set_flashdata('error', 'Gagal menambahkan template.');
+                }
+                redirect('admin/notifikasi');
+                return;
+            }
+        }
+
+        // Load templates for selection
+        $data['templates'] = $this->load_notification_templates();
+        $data['content'] = $this->load->view('admin/push_notification', $data, TRUE);
+        $this->load->view('template/main', $data);
+    }
+
+    /** Helper: base64url encode */
+    private function base64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    /** Path ke service-account.json */
+    private function get_service_account_path() {
+        return FCPATH . 'api' . DIRECTORY_SEPARATOR . 'service-account.json';
+    }
+
+    /** Generate Google OAuth2 Access Token dari Service Account untuk FCM HTTP v1 */
+    private function generate_access_token() {
+        $saPath = $this->get_service_account_path();
+        if (!file_exists($saPath)) {
+            return array('ok' => false, 'error' => 'service-account.json tidak ditemukan di ' . $saPath);
+        }
+        $serviceAccount = json_decode(@file_get_contents($saPath), true);
+        if (!is_array($serviceAccount) || empty($serviceAccount['client_email']) || empty($serviceAccount['private_key'])) {
+            return array('ok' => false, 'error' => 'service-account.json tidak valid. Pastikan client_email dan private_key tersedia.');
+        }
+
+        $header = array('alg' => 'RS256', 'typ' => 'JWT');
+        $now = time();
+        $payload = array(
+            'iss' => $serviceAccount['client_email'],
+            'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+            'aud' => 'https://oauth2.googleapis.com/token',
+            'iat' => $now,
+            'exp' => $now + 3600
+        );
+
+        $jwtHeader = $this->base64url_encode(json_encode($header));
+        $jwtPayload = $this->base64url_encode(json_encode($payload));
+        $signatureInput = $jwtHeader . '.' . $jwtPayload;
+
+        $signature = '';
+        $okSign = openssl_sign($signatureInput, $signature, $serviceAccount['private_key'], OPENSSL_ALGO_SHA256);
+        if (!$okSign) {
+            return array('ok' => false, 'error' => 'Gagal menandatangani JWT dengan private_key.');
+        }
+
+        $jwtSignature = $this->base64url_encode($signature);
+        $jwt = $signatureInput . '.' . $jwtSignature;
+
+        // Request access token
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array(
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion' => $jwt
+        )));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        $responseRaw = curl_exec($ch);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($responseRaw === false) {
+            return array('ok' => false, 'error' => 'Curl error: ' . $curlErr);
+        }
+        $response = json_decode($responseRaw, true);
+        if (isset($response['access_token'])) {
+            return array('ok' => true, 'token' => $response['access_token']);
+        }
+        return array('ok' => false, 'error' => 'Token response invalid: ' . ($responseRaw ?: 'no response'));
+    }
+
+    /** Kirim notifikasi ke topic "all" menggunakan FCM HTTP v1 */
+    private function send_notification($title, $body, $channelId = null, $sound = null, $mode = 'data') {
+        $tokenRes = $this->generate_access_token();
+        if (!$tokenRes['ok']) {
+            return array('ok' => false, 'error' => $tokenRes['error']);
+        }
+        $accessToken = $tokenRes['token'];
+
+        // Ambil project_id dari service account agar konsisten
+        $saPath = $this->get_service_account_path();
+        $serviceAccount = json_decode(@file_get_contents($saPath), true);
+        $projectId = isset($serviceAccount['project_id']) ? $serviceAccount['project_id'] : 'unknown-project';
+
+        if ($mode === 'data') {
+            // Data-only message: app client membangun notifikasi sendiri
+            $dataPayload = array(
+                'title' => (string)$title,
+                'body'  => (string)$body
+            );
+            // Opsional: kirim channel & sound agar client bisa pakai
+            if (!empty($channelId)) { $dataPayload['channel_id'] = (string)$channelId; }
+            if (!empty($sound)) { $dataPayload['sound'] = (string)$sound; }
+
+            $message = array(
+                'message' => array(
+                    'topic' => 'all',
+                    'data'  => $dataPayload,
+                    'android' => array('priority' => 'HIGH')
+                )
+            );
+        } else {
+            // Notification payload (FCM menampilkan otomatis)
+            $androidNotif = array();
+            if (!empty($channelId)) { $androidNotif['channel_id'] = (string)$channelId; }
+            if (!empty($sound)) { $androidNotif['sound'] = (string)$sound; }
+
+            $message = array(
+                'message' => array(
+                    'topic' => 'all',
+                    'notification' => array(
+                        'title' => (string)$title,
+                        'body' => (string)$body
+                    ),
+                    'android' => empty($androidNotif) ? new stdClass() : array('notification' => $androidNotif)
+                )
+            );
+        }
+
+        $url = 'https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send';
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: application/json'
+        ));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        $responseRaw = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($responseRaw === false) {
+            return array('ok' => false, 'error' => 'Curl error: ' . $curlErr);
+        }
+        $response = json_decode($responseRaw, true);
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return array('ok' => true, 'message_id' => $response['name'] ?? null);
+        }
+        // Ambil pesan error dari API bila ada
+        $errMsg = isset($response['error']['message']) ? $response['error']['message'] : $responseRaw;
+        return array('ok' => false, 'error' => 'HTTP ' . $httpCode . ' - ' . $errMsg);
+    }
+
+    /** File path untuk menyimpan template notifikasi */
+    private function templates_file_path() {
+        $dir = FCPATH . 'notification';
+        if (!is_dir($dir)) { @mkdir($dir, 0777, true); }
+        return $dir . DIRECTORY_SEPARATOR . 'templates.json';
+    }
+
+    /** Memuat daftar template notifikasi dari file JSON */
+    private function load_notification_templates() {
+        $file = $this->templates_file_path();
+        if (!file_exists($file)) { return array(); }
+        $raw = @file_get_contents($file);
+        if ($raw === false) { return array(); }
+        $json = json_decode($raw, true);
+        return is_array($json) ? $json : array();
+    }
+
+    /** Menambah template notifikasi ke file JSON */
+    private function add_notification_template($title, $body) {
+        $templates = $this->load_notification_templates();
+        $tpl = array(
+            'id' => uniqid('tpl_', true),
+            'title' => (string)$title,
+            'body' => (string)$body,
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $this->session->userdata('username') ?: 'admin'
+        );
+        $templates[] = $tpl;
+        $file = $this->templates_file_path();
+        $json = json_encode($templates, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        return @file_put_contents($file, $json, LOCK_EX) !== false;
+    }
+
     private function handle_user_action() {
         $action = $this->input->post('action');
         

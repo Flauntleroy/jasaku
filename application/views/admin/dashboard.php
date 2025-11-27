@@ -176,7 +176,7 @@
 
   <div class="col-span-12 xl:col-span-7">
     <!-- Recent Items Table -->
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <!-- <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div><h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Data Terbaru</h3></div>
       </div>
@@ -210,7 +210,7 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </div> -->
   </div>
 </div>
 

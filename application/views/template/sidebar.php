@@ -34,22 +34,28 @@
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Kelola Pegawai</span>
               </a>
             </li>
-            <li>
+            <!-- <li>
               <a href="<?= base_url('admin/jasa-bonus') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= (uri_string()==='admin/jasa-bonus'||uri_string()==='admin/jasa')?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
                 <svg class="h-5 w-5 text-gray-500 dark:text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17h18v2H3v-2zm0-5h18v2H3v-2zm0-5h18v2H3V7z"/></svg>
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Data Jasa/Bonus</span>
               </a>
-            </li>
-            <li>
+            </li> -->
+            <!-- <li>
               <a href="<?= base_url('admin/laporan') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= uri_string()==='admin/laporan'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
                 <svg class="h-5 w-5 text-gray-500 dark:text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm2 4h14v12H5V7zm4 2v8h2V9H9zm4 0v8h2V9h-2z"/></svg>
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Laporan</span>
               </a>
-            </li>
+            </li> -->
             <li>
               <a href="<?= base_url('admin/maintenance') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= uri_string()==='admin/maintenance'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
                 <svg class="h-5 w-5 text-gray-500 dark:text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M22 7l-9 9-4-4-6 6 2 2 6-6 4 4 11-11z"/></svg>
                 <span :class="sidebarToggle ? 'lg:hidden' : ''">Maintenance</span>
+              </a>
+            </li>
+            <li>
+              <a href="<?= base_url('admin/notifikasi') ?>" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-white/5 <?= uri_string()==='admin/notifikasi'?'bg-gray-100 dark:bg-white/5 font-medium':'' ?>">
+                <svg class="h-5 w-5 text-gray-500 dark:text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <span :class="sidebarToggle ? 'lg:hidden' : ''">Push Notifikasi</span>
               </a>
             </li>
           <?php else: ?>
